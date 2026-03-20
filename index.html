@@ -550,30 +550,6 @@ body{font-family:'DM Sans',sans-serif}
           <div id="brindeList" class="space-y-2"></div>
         </div>
 
-        <!-- Brindes -->
-        <div class="card">
-          <h3 class="font-semibold text-base mb-4 flex items-center gap-2"><i class="fas fa-gift text-brand-500"></i> Gestão de Brindes</h3>
-          <form id="brindeForm" class="space-y-3 mb-5">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="text-xs font-semibold text-slate-500 mb-1 block">Nome do brinde *</label>
-                <input type="text" id="brindeName" class="form-input" placeholder="Ex: Camiseta, Caneca, Kit..." required>
-              </div>
-              <div>
-                <label class="text-xs font-semibold text-slate-500 mb-1 block">Evento *</label>
-                <select id="brindeEventoSelect" class="form-input" required>
-                  <option value="">Selecione o evento</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label class="text-xs font-semibold text-slate-500 mb-1 block">Quantidade disponível *</label>
-              <input type="number" id="brindeQuantidade" class="form-input" placeholder="Ex: 100" min="0" required>
-            </div>
-            <button type="submit" class="btn-primary text-sm"><i class="fas fa-plus"></i> Adicionar Brinde</button>
-          </form>
-          <div id="brindeList" class="space-y-2"></div>
-        </div>
 
         <!-- EmailJS config -->
         <div class="card">
@@ -1164,7 +1140,7 @@ function setupListeners() {
   if (unsubEventos) unsubEventos();
   unsubEventos = onSnapshot(query(eventosRef), snap => {
     allEvents = snap.docs.map(d => ({id:d.id,...d.data()}));
-    populateEventDropdowns(); renderEventList(); autoSelectEvent();
+    populateEventDropdowns(); renderEventList(); autoSelectEvent(); populateBrindeEventoSelect();
   });
   if (unsubUsers) unsubUsers();
   unsubUsers = onSnapshot(query(usersRef), snap => {
@@ -2520,7 +2496,20 @@ function populateBrindeEventoSelect() {
   const cur = sel.value;
   sel.innerHTML = '<option value="">Selecione o evento</option>';
   allEvents.forEach(ev => { sel.innerHTML += `<option value="${ev.name}">${ev.name}</option>`; });
-  if (cur) sel.value = cur;
+  // Restore previous value or auto-select current event
+  if (cur && allEvents.find(ev => ev.name === cur)) {
+    sel.value = cur;
+  } else {
+    // Auto-select the currently active/upcoming event
+    const today = new Date(); today.setHours(0,0,0,0);
+    const parse = s => s ? new Date(s + 'T00:00:00') : null;
+    const active = allEvents.find(ev => { const s=parse(ev.startDate),e=parse(ev.endDate); return s&&e&&s<=today&&today<=e; });
+    if (active) sel.value = active.name;
+    else {
+      const upcoming = allEvents.filter(ev=>parse(ev.startDate)>=today).sort((a,b)=>parse(a.startDate)-parse(b.startDate));
+      if (upcoming.length) sel.value = upcoming[0].name;
+    }
+  }
 }
 
 // Render brinde list in admin
