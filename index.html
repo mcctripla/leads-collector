@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leads Collector</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['DM Sans', 'sans-serif'], mono: ['DM Mono', 'monospace'] },
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff', 100: '#e0effe', 200: '#bae0fd', 300: '#7cc8fb',
+                            400: '#36aaf5', 500: '#0c8ee1', 600: '#0070c0', 700: '#005a9c',
+                            800: '#064c82', 900: '#0a3f6c', accent: '#00C896', warn: '#F59E0B', danger: '#EF4444'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 99px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+        /* Transitions */
+        .fade-in { animation: fadeIn 0.25s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Tab active */
+        .tab-btn { position: relative; padding: 10px 16px; font-size: 14px; font-weight: 500; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; cursor: pointer; white-space: nowrap; }
+        .tab-btn:hover { color: #0c8ee1; }
+        .tab-btn.active { color: #0070c0; border-bottom-color: #0070c0; }
+        .dark .tab-btn { color: #94a3b8; }
+        .dark .tab-btn:hover { color: #36aaf5; }
+        .dark .tab-btn.active { color: #36aaf5; border-bottom-color: #36aaf5; }
+
+        /* Form inputs */
+        .form-input {
+            width: 100%; padding: 10px 14px; border-radius: 8px;
+            border: 1.5px solid #e2e8f0; font-size: 14px; outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            background: white; color: #1e293b;
+        }
+        .form-input:focus { border-color: #0c8ee1; box-shadow: 0 0 0 3px rgba(12,142,225,0.12); }
+        .form-input.error { border-color: #EF4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.12); }
+        .form-input.success { border-color: #00C896; }
+        .dark .form-input { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+        .dark .form-input:focus { border-color: #36aaf5; box-shadow: 0 0 0 3px rgba(54,170,245,0.15); }
+
+        /* Buttons */
+        .btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #0070c0; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary:hover { background: #0c8ee1; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,112,192,0.3); }
+        .btn-primary:active { transform: translateY(0); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #f1f5f9; color: #475569; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-secondary:hover { background: #e2e8f0; }
+        .dark .btn-secondary { background: #334155; color: #94a3b8; }
+        .dark .btn-secondary:hover { background: #475569; }
+        .btn-danger { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #EF4444; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-danger:hover { background: #dc2626; }
+
+        /* Cards */
+        .card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; }
+        .dark .card { background: #1e293b; border-color: #334155; }
+
+        /* Metric cards */
+        .metric-card { background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 20px; transition: all 0.2s; }
+        .metric-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+        .dark .metric-card { background: #1e293b; border-color: #334155; }
+
+        /* Badge */
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+        .badge-gray { background: #f1f5f9; color: #64748b; }
+        .badge-blue { background: #e0effe; color: #0070c0; }
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .badge-yellow { background: #fef9c3; color: #a16207; }
+        .badge-red { background: #fee2e2; color: #dc2626; }
+        .dark .badge-gray { background: #334155; color: #94a3b8; }
+        .dark .badge-blue { background: #0a3f6c; color: #7cc8fb; }
+        .dark .badge-green { background: #14532d; color: #86efac; }
+        .dark .badge-yellow { background: #422006; color: #fde047; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e2e8f0; background: #f8fafc; }
+        .dark .data-table th { color: #94a3b8; border-bottom-color: #334155; background: #0f172a; }
+        .data-table td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9; color: #374151; }
+        .dark .data-table td { border-bottom-color: #1e293b; color: #cbd5e1; }
+        .data-table tr:hover td { background: #f8fafc; }
+        .dark .data-table tr:hover td { background: #1e293b; }
+        .data-table thead th:first-child { border-radius: 8px 0 0 0; }
+        .data-table thead th:last-child { border-radius: 0 8px 0 0; }
+
+        /* Duplicate warning */
+        .duplicate-warning { background: #fef9c3; border: 1px solid #fde047; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #a16207; display: none; }
+        .dark .duplicate-warning { background: #422006; border-color: #ca8a04; color: #fde047; }
+
+        /* Progress bar */
+        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 99px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+        .dark .progress-bar { background: #334155; }
+
+        /* Sortable */
+        .sortable { cursor: pointer; user-select: none; }
+        .sortable:hover { color: #0070c0; }
+        .dark .sortable:hover { color: #36aaf5; }
+
+        /* Toggle switch */
+        .toggle { position: relative; width: 44px; height: 24px; }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 99px; transition: 0.3s; }
+        .toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+        input:checked + .toggle-slider { background: #0070c0; }
+        input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        /* Modal overlay */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal-box { background: white; border-radius: 16px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .dark .modal-box { background: #1e293b; }
+        .modal-box-lg { max-width: 720px; }
+
+        /* Sidebar */
+        .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 320px; background: white; border-right: 1px solid #e2e8f0; z-index: 40; transform: translateX(-100%); transition: transform 0.3s ease; overflow-y: auto; }
+        .sidebar.open { transform: translateX(0); }
+        .dark .sidebar { background: #1e293b; border-color: #334155; }
+
+        /* Radio/Checkbox custom */
+        .choice-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .choice-btn { padding: 8px 16px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; color: #64748b; background: white; }
+        .choice-btn:hover { border-color: #0c8ee1; color: #0c8ee1; }
+        .choice-btn.selected { border-color: #0070c0; background: #e0effe; color: #0070c0; }
+        .dark .choice-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
+        .dark .choice-btn:hover { border-color: #36aaf5; color: #36aaf5; }
+        .dark .choice-btn.selected { border-color: #36aaf5; background: #0a3f6c; color: #7cc8fb; }
+
+        /* Spinner */
+        .spinner { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Analytics chart bars */
+        .chart-bar { transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 100; display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.15); transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: #0f172a; color: #86efac; }
+        .toast-error { background: #0f172a; color: #fca5a5; }
+        .toast-warn { background: #0f172a; color: #fde047; }
+
+        /* Offline banner */
+        #offline-banner { display: none; position: fixed; top: 0; left: 0; right: 0; z-index: 200; background: #F59E0B; color: white; text-align: center; padding: 8px; font-size: 13px; font-weight: 600; }
+
+        /* PWA install */
+        #pwa-install { display: none; }
+
+        /* Field validation icons */
+        .field-wrap { position: relative; }
+        .field-icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; pointer-events: none; }
+
+        /* Section label */
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 12px; }
+
+        /* Dark input fix */
+        .dark input[type="date"]::-webkit-calendar-picker-indicator,
+        .dark input[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+        /* Sticky header */
+        .sticky-header { position: sticky; top: 0; z-index: 20; }
+
+        /* Step indicator */
+        .step-dot { width: 8px; height: 8px; border-radius: 50%; transition: all 0.3s; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen text-slate-800 dark:text-slate-100 transition-colors duration-300">
+
+<!-- Offline Banner -->
+<div id="offline-banner">
+    <i class="fas fa-wifi-slash mr-2"></i>
+    Você está offline. Os dados serão sincronizados quando a conexão for restabelecida.
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- ======================== AUTH ======================== -->
+<div id="auth-wrapper">
+
+    <!-- Login -->
+    <div id="login-container" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md fade-in">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand-700 mb-4 shadow-lg">
+                    <i class="fas fa-bolt text-white text-xl"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100">Leads Collector</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Capture e gerencie seus leads de eventos</p>
+            </div>
+
+            <div class="card shadow-xl shadow-slate-200/50 dark:shadow-none">
+                <h2 id="form-title" class="text-xl font-bold mb-6">Entrar</h2>
+
+                <form id="authForm" class="space-y-4">
+                    <div id="nameFieldsContainer" class="hidden grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs font-600 text-slate-500 mb-1 block">Nome</label>
+                            <input type="text" id="firstName" class="form-input" placeholder="João">
+                        </div>
+                        <div>
+                            <label class="text-xs font-600 text-slate-500 mb-1 block">Sobrenome</label>
+                            <input type="text" id="lastName" class="form-input" placeholder="Silva">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">E-mail</label>
+                        <input type="email" id="email" class="form-input" placeholder="seu@email.com" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">Senha</label>
+                        <div class="relative">
+                            <input type="password" id="password" class="form-input pr-10" placeholder="••••••••" required>
+                            <button type="button" id="togglePassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i class="fas fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="confirmPasswordContainer" class="hidden">
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">Confirmar Senha</label>
+                        <div class="relative">
+                            <input type="password" id="confirmPassword" class="form-input pr-10" placeholder="••••••••">
+                            <button type="button" id="toggleConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                <i class="fas fa-eye text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="auth-error" class="hidden text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3"></div>
+
+                    <button type="submit" id="authButton" class="btn-primary w-full justify-center">
+                        <span class="button-text">Entrar</span>
+                        <span class="spinner hidden"></span>
+                    </button>
+                </form>
+
+                <div id="login-actions" class="mt-4 flex justify-between items-center text-sm">
+                    <a href="#" id="forgot-password-link" class="text-brand-600 hover:text-brand-700 font-medium">Esqueci a senha</a>
+                    <a href="#" id="toggle-form-link" class="text-slate-500 hover:text-slate-700">Criar conta</a>
+                </div>
+                <div id="register-actions" class="hidden mt-4 text-center text-sm">
+                    <a href="#" id="back-to-login-btn" class="text-slate-500 hover:text-slate-700">Já tenho conta</a>
+                </div>
+            </div>
+
+            <!-- Theme toggle -->
+            <div class="flex justify-center mt-6">
+                <button id="theme-toggle-auth" class="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2">
+                    <i id="theme-icon-auth" class="fas fa-moon"></i>
+                    <span id="theme-label-auth">Modo escuro</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password -->
+    <div id="reset-password-container" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md fade-in">
+            <div class="card shadow-xl shadow-slate-200/50 dark:shadow-none">
+                <div class="flex items-center gap-3 mb-6">
+                    <button id="back-to-login-link" class="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                        <i class="fas fa-arrow-left text-sm"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold">Recuperar senha</h2>
+                        <p class="text-sm text-slate-500">Enviaremos um link para seu e-mail</p>
+                    </div>
+                </div>
+                <form id="resetPasswordForm" class="space-y-4">
+                    <div>
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">E-mail cadastrado</label>
+                        <input type="email" id="resetEmail" class="form-input" placeholder="seu@email.com" required>
+                    </div>
+                    <div id="reset-message" class="hidden text-sm rounded-lg p-3"></div>
+                    <button type="submit" class="btn-primary w-full justify-center">
+                        <span class="button-text">Enviar link de recuperação</span>
+                        <span class="spinner hidden"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registration Success -->
+    <div id="registration-success-container" class="hidden min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md text-center fade-in">
+            <div class="card shadow-xl shadow-slate-200/50 dark:shadow-none">
+                <div class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h2 class="text-xl font-bold mb-2">Cadastro realizado!</h2>
+                <p class="text-slate-500 text-sm mb-6">Sua conta está pendente de aprovação pelo administrador. Você será notificado quando tiver acesso.</p>
+                <button id="back-to-login-from-success-btn" class="btn-secondary w-full justify-center">Voltar ao login</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ======================== APP ======================== -->
+<div id="app-container" class="hidden min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="sticky-header bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+        <div class="max-w-screen-2xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-brand-700 flex items-center justify-center">
+                    <i class="fas fa-bolt text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-slate-800 dark:text-slate-100 hidden sm:block">Leads Collector</span>
+            </div>
+
+            <!-- Tabs -->
+            <nav class="flex overflow-x-auto no-scrollbar">
+                <button id="tab-cadastro-btn" class="tab-btn active"><i class="fas fa-plus-circle mr-1.5"></i>Novo Lead</button>
+                <button id="tab-registros-btn" class="tab-btn"><i class="fas fa-list mr-1.5"></i>Registros</button>
+                <button id="tab-analytics-btn" class="tab-btn"><i class="fas fa-chart-pie mr-1.5"></i>Analytics</button>
+                <button id="tab-admin-btn" class="tab-btn hidden"><i class="fas fa-cog mr-1.5"></i>Admin</button>
+                <button id="tab-usuarios-btn" class="tab-btn hidden"><i class="fas fa-users mr-1.5"></i>Usuários</button>
+            </nav>
+
+            <div class="flex items-center gap-2">
+                <span id="welcomeMessage" class="text-sm text-slate-500 hidden md:block"></span>
+                <button id="settings-btn" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <button id="theme-toggle" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors">
+                    <i id="theme-toggle-dark-icon" class="fas fa-moon hidden text-sm"></i>
+                    <i id="theme-toggle-light-icon" class="fas fa-sun hidden text-sm"></i>
+                </button>
+                <button id="logoutButton" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500 transition-colors" title="Sair">
+                    <i class="fas fa-sign-out-alt text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="flex-1 max-w-screen-2xl mx-auto w-full px-4 py-6">
+
+        <!-- ===== TAB: CADASTRO ===== -->
+        <div id="tab-cadastro-content" class="fade-in">
+            <div class="max-w-2xl mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold">Novo Lead</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Registre um novo contato do evento</p>
+                    </div>
+                    <div id="offline-queue-badge" class="hidden badge badge-yellow">
+                        <i class="fas fa-clock text-xs"></i>
+                        <span id="offline-queue-count">0</span> na fila
+                    </div>
+                </div>
+
+                <form id="clientForm" class="space-y-6" novalidate>
+
+                    <!-- Evento -->
+                    <div class="card">
+                        <p class="section-label">Evento</p>
+                        <select id="evento" class="form-input" required>
+                            <option value="">Selecione o evento</option>
+                        </select>
+                    </div>
+
+                    <!-- Dados do Lead -->
+                    <div class="card space-y-4">
+                        <p class="section-label">Dados do Contato</p>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Nome completo <span class="text-red-400">*</span></label>
+                            <input type="text" id="name" class="form-input" placeholder="Ex: Maria Silva" required autocomplete="off">
+                            <p class="field-error text-xs text-red-500 mt-1 hidden"></p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">E-mail <span class="text-red-400">*</span></label>
+                                <div class="field-wrap">
+                                    <input type="email" id="lead_email" class="form-input pr-9" placeholder="email@empresa.com" required autocomplete="off">
+                                    <span id="email-validation-icon" class="field-icon hidden"></span>
+                                </div>
+                                <div id="duplicate-email-warning" class="duplicate-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    <span id="duplicate-email-msg"></span>
+                                </div>
+                                <p class="field-error text-xs text-red-500 mt-1 hidden"></p>
+                            </div>
+                            <div>
+                                <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Telefone</label>
+                                <div class="field-wrap">
+                                    <input type="tel" id="phone" class="form-input pr-9" placeholder="(00) 00000-0000" autocomplete="off">
+                                    <span id="phone-validation-icon" class="field-icon hidden"></span>
+                                </div>
+                                <div id="duplicate-phone-warning" class="duplicate-warning mt-2">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                    <span id="duplicate-phone-msg"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Empresa</label>
+                            <input type="text" id="company" class="form-input" placeholder="Nome da empresa" autocomplete="off">
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Origem do contato</label>
+                            <div class="choice-group" id="origem-group">
+                                <button type="button" class="choice-btn" data-value="estande">Estande</button>
+                                <button type="button" class="choice-btn" data-value="palestra">Palestra</button>
+                                <button type="button" class="choice-btn" data-value="networking">Networking</button>
+                                <button type="button" class="choice-btn" data-value="indicacao">Indicação</button>
+                                <button type="button" class="choice-btn" data-value="outro">Outro</button>
+                            </div>
+                            <input type="hidden" id="origemContato">
+                        </div>
+                    </div>
+
+                    <!-- Qualificação -->
+                    <div class="card space-y-5">
+                        <p class="section-label">Qualificação</p>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-2 block">É responsável pela conta?</label>
+                            <div class="choice-group" data-field="responsavelConta">
+                                <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                                <button type="button" class="choice-btn" data-value="nao">Não</button>
+                            </div>
+                            <input type="hidden" name="responsavelConta" id="responsavelContaVal">
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-2 block">É o decisor?</label>
+                            <div class="choice-group" data-field="contatoDecisor">
+                                <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                                <button type="button" class="choice-btn" data-value="nao">Não</button>
+                            </div>
+                            <input type="hidden" name="contatoDecisor" id="contatoDecisorVal">
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-2 block">Houve conversa sobre demanda?</label>
+                            <div class="choice-group" data-field="conversaDemanda">
+                                <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                                <button type="button" class="choice-btn" data-value="nao">Não</button>
+                            </div>
+                            <input type="hidden" name="conversaDemanda" id="conversaDemandaVal">
+                        </div>
+
+                        <div id="demandasContainer" class="hidden">
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-2 block">Quais demandas?</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Implementação" class="rounded"> Implementação</label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Suporte" class="rounded"> Suporte</label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Consultoria" class="rounded"> Consultoria</label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Treinamento" class="rounded"> Treinamento</label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Licenciamento" class="rounded"> Licenciamento</label>
+                                <label class="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" name="demandas" value="Integração" class="rounded"> Integração</label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-2 block">Pedir RO para Sales Ops?</label>
+                            <div class="choice-group" data-field="pedirRO">
+                                <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                                <button type="button" class="choice-btn" data-value="nao">Não</button>
+                            </div>
+                            <input type="hidden" name="pedirRO" id="pedirROVal">
+                        </div>
+                    </div>
+
+                    <!-- Próximo Passo -->
+                    <div class="card space-y-4">
+                        <p class="section-label">Próximo Passo</p>
+                        <div class="choice-group flex-col sm:flex-row" data-field="proximoPasso">
+                            <button type="button" class="choice-btn" data-value="euAgendo">Eu vou agendar a reunião</button>
+                            <button type="button" class="choice-btn" data-value="sdrAgenda">Quero que um SDR agende</button>
+                            <button type="button" class="choice-btn" data-value="nutricaoMKT">Nutrição de marketing</button>
+                        </div>
+                        <input type="hidden" id="proximoPassoVal">
+
+                        <div id="dataHoraAgendadaContainer" class="hidden grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Data</label>
+                                <input type="date" id="reuniaoDataInput" class="form-input">
+                            </div>
+                            <div>
+                                <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Hora</label>
+                                <input type="time" id="reuniaoHoraInput" class="form-input">
+                            </div>
+                        </div>
+                        <div id="sdrSelectorContainer" class="hidden">
+                            <label class="text-sm font-500 text-slate-600 dark:text-slate-300 mb-1.5 block">Atribuir ao SDR</label>
+                            <select id="sdrSelector" class="form-input"></select>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="card">
+                        <p class="section-label">Observações</p>
+                        <textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes sobre a conversa..."></textarea>
+                    </div>
+
+                    <button type="submit" id="saveButton" class="btn-primary w-full justify-center text-base py-3">
+                        <i class="fas fa-save button-icon"></i>
+                        <span class="button-text">Salvar Lead</span>
+                        <span class="spinner hidden"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== TAB: REGISTROS ===== -->
+        <div id="tab-registros-content" class="hidden fade-in">
+            <!-- Toolbar -->
+            <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                <div class="relative flex-1">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="filtroTexto" class="form-input pl-9" placeholder="Buscar por nome, e-mail ou empresa...">
+                </div>
+                <div class="flex gap-2">
+                    <button id="open-filter-sidebar" class="btn-secondary gap-2">
+                        <i class="fas fa-sliders-h"></i> Filtros
+                        <span id="filter-count-badge" class="hidden w-5 h-5 rounded-full bg-brand-600 text-white text-xs flex items-center justify-center font-bold"></span>
+                    </button>
+                    <button id="exportXlsxButton" class="btn-secondary gap-2 hidden">
+                        <i class="fas fa-file-excel"></i> Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div id="registros-stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4"></div>
+
+            <!-- Table -->
+            <div class="card p-0 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="responsavel">Responsável <span class="sort-icon ml-1 text-slate-300">↕</span></th>
+                                <th class="sortable hidden md:table-cell" data-sort="evento">Evento <span class="sort-icon ml-1 text-slate-300">↕</span></th>
+                                <th class="sortable" data-sort="name">Nome <span class="sort-icon ml-1 text-slate-300">↕</span></th>
+                                <th class="hidden lg:table-cell">Empresa</th>
+                                <th class="hidden sm:table-cell">Origem</th>
+                                <th>Reunião</th>
+                                <th id="actions-header" class="text-right">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientTableBody">
+                            <tr><td colspan="7" class="text-center py-12 text-slate-400">
+                                <i class="fas fa-inbox text-3xl mb-3 block opacity-30"></i>
+                                Nenhum registro encontrado.
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="table-footer" class="px-4 py-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                    <span id="table-count" class="text-xs text-slate-400"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ANALYTICS ===== -->
+        <div id="tab-analytics-content" class="hidden fade-in">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Analytics</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Visão geral do desempenho de captação</p>
+                </div>
+                <select id="analytics-evento-filter" class="form-input w-auto text-sm">
+                    <option value="todos">Todos os eventos</option>
+                </select>
+            </div>
+
+            <!-- KPI cards -->
+            <div id="analytics-kpis" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6"></div>
+
+            <!-- Charts row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                <!-- Status funil -->
+                <div class="card">
+                    <h3 class="font-600 text-sm mb-4 text-slate-600 dark:text-slate-300">Funil de Reuniões</h3>
+                    <div id="funil-chart" class="space-y-3"></div>
+                </div>
+                <!-- Por evento -->
+                <div class="card">
+                    <h3 class="font-600 text-sm mb-4 text-slate-600 dark:text-slate-300">Leads por Evento</h3>
+                    <div id="eventos-chart" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Por responsável -->
+                <div class="card">
+                    <h3 class="font-600 text-sm mb-4 text-slate-600 dark:text-slate-300">Top Responsáveis</h3>
+                    <div id="responsaveis-chart" class="space-y-3"></div>
+                </div>
+                <!-- Por origem -->
+                <div class="card">
+                    <h3 class="font-600 text-sm mb-4 text-slate-600 dark:text-slate-300">Origem dos Leads</h3>
+                    <div id="origem-chart" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ADMIN ===== -->
+        <div id="tab-admin-content" class="hidden fade-in">
+            <div class="max-w-2xl mx-auto space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold">Administração</h2>
+                    <p class="text-sm text-slate-500 mt-0.5">Gerencie eventos e configurações</p>
+                </div>
+
+                <!-- Events -->
+                <div class="card">
+                    <h3 class="font-600 text-base mb-4">Eventos</h3>
+                    <form id="eventForm" class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+                        <input type="text" id="eventName" class="form-input" placeholder="Nome do evento" required>
+                        <input type="date" id="eventStartDate" class="form-input" required>
+                        <input type="date" id="eventEndDate" class="form-input" required>
+                        <button type="submit" class="btn-primary col-span-full sm:col-span-1">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+                    </form>
+                    <ul id="eventList" class="space-y-2 text-sm"></ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: USUÁRIOS ===== -->
+        <div id="tab-usuarios-content" class="hidden fade-in">
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold">Usuários</h2>
+                        <p class="text-sm text-slate-500 mt-0.5">Gerencie o acesso da equipe</p>
+                    </div>
+                    <div class="relative w-64">
+                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="userSearchInput" class="form-input pl-9 text-sm" placeholder="Buscar usuário...">
+                    </div>
+                </div>
+
+                <!-- Pending -->
+                <div class="card">
+                    <h3 class="font-600 text-sm text-amber-600 dark:text-amber-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-clock"></i> Aguardando Aprovação
+                        <span id="pending-count" class="badge badge-yellow"></span>
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Nome</th><th>E-mail</th><th>Cargo</th><th class="text-right">Ações</th>
+                            </tr></thead>
+                            <tbody id="pendingUserTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Approved -->
+                <div class="card">
+                    <h3 class="font-600 text-sm text-green-600 dark:text-green-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i> Usuários Ativos
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead id="approvedUsersThead"><tr>
+                                <th class="sortable" data-sort="nome">Nome <span class="sort-icon ml-1 text-slate-300">↕</span></th>
+                                <th>E-mail</th>
+                                <th>Cargo</th>
+                                <th class="text-right">Ações</th>
+                            </tr></thead>
+                            <tbody id="approvedUserTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Deactivated -->
+                <div class="card">
+                    <h3 class="font-600 text-sm text-slate-400 mb-3 flex items-center gap-2">
+                        <i class="fas fa-user-slash"></i> Desativados
+                    </h3>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead><tr>
+                                <th>Nome</th><th>E-mail</th><th>Cargo</th><th class="text-right">Ações</th>
+                            </tr></thead>
+                            <tbody id="deactivatedUserTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ======================== MODALS ======================== -->
+
+<!-- Filter Sidebar -->
+<div id="filter-sidebar-overlay" class="hidden fixed inset-0 bg-black/40 z-30" onclick="closeFilterSidebar()"></div>
+<div id="filter-sidebar" class="sidebar">
+    <div class="p-5">
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="font-bold text-lg">Filtros</h3>
+            <button onclick="closeFilterSidebar()" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <label class="section-label">Evento</label>
+                <select id="filtroEvento" class="form-input text-sm"><option value="Todos">Todos os Eventos</option></select>
+            </div>
+            <div>
+                <label class="section-label">Responsável</label>
+                <select id="filtroResponsavel" class="form-input text-sm"><option value="Todos">Todos</option></select>
+            </div>
+            <div>
+                <label class="section-label">Status da Reunião</label>
+                <select id="filtroReuniao" class="form-input text-sm">
+                    <option value="Todos">Todos</option>
+                    <option value="Não Definido">Não Definido</option>
+                    <option value="A definir">A definir</option>
+                    <option value="Agendada">Agendada</option>
+                    <option value="Realizada">Realizada</option>
+                </select>
+            </div>
+            <div>
+                <label class="section-label">Origem</label>
+                <select id="filtroOrigem" class="form-input text-sm">
+                    <option value="Todos">Todas as origens</option>
+                    <option value="estande">Estande</option>
+                    <option value="palestra">Palestra</option>
+                    <option value="networking">Networking</option>
+                    <option value="indicacao">Indicação</option>
+                    <option value="outro">Outro</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-6">
+            <button id="clearFiltersButton" class="btn-secondary flex-1 justify-center text-sm">Limpar</button>
+            <button onclick="closeFilterSidebar()" class="btn-primary flex-1 justify-center text-sm">Aplicar</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Lead Modal -->
+<div id="viewLeadModal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box modal-box-lg fade-in">
+        <div class="p-6">
+            <div id="viewLeadModalContent"></div>
+            <div id="viewLeadModalFooter" class="flex gap-3 justify-end mt-6 pt-4 border-t border-slate-100 dark:border-slate-700"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Lead Modal -->
+<div id="editModal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box modal-box-lg fade-in">
+        <div class="p-6">
+            <form id="editClientForm"></form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box fade-in">
+        <div class="p-6">
+            <form id="editUserForm" class="space-y-4"></form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="hidden modal-overlay">
+    <div class="modal-box fade-in max-w-sm">
+        <div class="p-6 text-center">
+            <div class="w-14 h-14 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-trash-alt text-red-500 text-xl"></i>
+            </div>
+            <h3 id="deleteModalTitle" class="text-lg font-bold mb-2">Confirmar exclusão</h3>
+            <p class="text-sm text-slate-500 mb-6">Esta ação não pode ser desfeita.</p>
+            <div class="flex gap-3">
+                <button id="cancelDeleteButton" class="btn-secondary flex-1 justify-center">Cancelar</button>
+                <button id="confirmDeleteButton" class="btn-danger flex-1 justify-center">Excluir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Password Confirm Modal -->
+<div id="passwordConfirmModal" class="hidden modal-overlay">
+    <div class="modal-box fade-in max-w-sm">
+        <div class="p-6">
+            <h3 id="passwordConfirmTitle" class="text-lg font-bold mb-2">Confirmar ação</h3>
+            <p id="passwordConfirmMessage" class="text-sm text-slate-500 mb-4"></p>
+            <form id="passwordConfirmForm" class="space-y-4">
+                <input type="password" id="adminPassword" class="form-input" placeholder="Sua senha de administrador" required>
+                <div id="password-confirm-error" class="hidden text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3"></div>
+                <div class="flex gap-3">
+                    <button type="button" id="cancel-password-confirm-btn" class="btn-secondary flex-1 justify-center">Cancelar</button>
+                    <button type="submit" class="btn-danger flex-1 justify-center">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="hidden modal-overlay" onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="modal-box fade-in">
+        <div class="p-6 space-y-6">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-bold">Meu Perfil</h3>
+                <button id="cancel-settings-btn-main" class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Profile Form -->
+            <form id="userProfileForm" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">Nome</label>
+                        <input type="text" id="profileFirstName" class="form-input" required>
+                    </div>
+                    <div>
+                        <label class="text-xs font-600 text-slate-500 mb-1 block">Sobrenome</label>
+                        <input type="text" id="profileLastName" class="form-input" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-600 text-slate-500 mb-1 block">E-mail</label>
+                    <input type="email" id="profileEmail" class="form-input" disabled>
+                </div>
+                <div>
+                    <label class="text-xs font-600 text-slate-500 mb-1 block">Cargo</label>
+                    <input type="text" id="profileRole" class="form-input" disabled>
+                </div>
+                <div id="profile-message" class="hidden text-sm rounded-lg p-3"></div>
+                <button type="submit" class="btn-primary w-full justify-center">Salvar Perfil</button>
+            </form>
+
+            <hr class="border-slate-100 dark:border-slate-700">
+
+            <!-- Password Change Form -->
+            <form id="passwordChangeForm" class="space-y-4">
+                <h4 class="font-600 text-sm">Alterar Senha</h4>
+                <div>
+                    <label class="text-xs font-600 text-slate-500 mb-1 block">Senha atual</label>
+                    <div class="relative">
+                        <input type="password" id="profileCurrentPassword" class="form-input pr-10" required>
+                        <button type="button" class="toggle-password-visibility absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fas fa-eye text-sm"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-600 text-slate-500 mb-1 block">Nova senha</label>
+                    <div class="relative">
+                        <input type="password" id="profileNewPassword" class="form-input pr-10" required>
+                        <button type="button" class="toggle-password-visibility absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fas fa-eye text-sm"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-xs font-600 text-slate-500 mb-1 block">Confirmar nova senha</label>
+                    <div class="relative">
+                        <input type="password" id="profileConfirmNewPassword" class="form-input pr-10" required>
+                        <button type="button" class="toggle-password-visibility absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i class="fas fa-eye text-sm"></i></button>
+                    </div>
+                </div>
+                <div id="password-change-message" class="hidden text-sm rounded-lg p-3"></div>
+                <button type="submit" class="btn-secondary w-full justify-center">Alterar Senha</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ======================== SCRIPTS ======================== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc, setDoc, getDoc, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// ── Firebase Config ──────────────────────────────────────
+const firebaseConfig = {
+    apiKey: "AIzaSyAshpqpqUm9OwfpSumDpo-iLnt-hE_3h0E",
+    authDomain: "leads-collector-d0731.firebaseapp.com",
+    projectId: "leads-collector-d0731",
+    storageBucket: "leads-collector-d0731.firebasestorage.app",
+    messagingSenderId: "968420839657",
+    appId: "1:968420839657:web:ed888e0ccdcbff4b6ae078"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── State ────────────────────────────────────────────────
+let currentUserId = null, currentUserRole = 'comum', currentUserData = {};
+let clientesRef, eventosRef, usersRef;
+let unsubClientes, unsubEventos, unsubUsers;
+let allClients = [], allEvents = [], allUsers = [];
+let itemToDelete = { id: null, type: null };
+let clientToEditId = null, userToEditId = null;
+let isLoginMode = true;
+let clientSort = { key: 'createdAt', dir: 'desc' };
+let userSort = { key: 'nome', dir: 'asc' };
+let actionToConfirm = { userId: null, type: null };
+let offlineQueue = [];
+let activeFilters = 0;
+
+// ── Theme ────────────────────────────────────────────────
+function applyTheme(t) {
+    document.documentElement.classList.toggle('dark', t === 'dark');
+    ['theme-toggle-dark-icon','theme-toggle-light-icon'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden', id.includes(t === 'dark' ? 'light' : 'dark'));
+    });
+    const authIcon = document.getElementById('theme-icon-auth');
+    const authLabel = document.getElementById('theme-label-auth');
+    if (authIcon) authIcon.className = `fas fa-${t === 'dark' ? 'sun' : 'moon'}`;
+    if (authLabel) authLabel.textContent = t === 'dark' ? 'Modo claro' : 'Modo escuro';
+}
+const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(savedTheme);
+
+document.getElementById('theme-toggle').addEventListener('click', () => {
+    const t = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', t); applyTheme(t);
+});
+document.getElementById('theme-toggle-auth').addEventListener('click', () => {
+    const t = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+    localStorage.setItem('theme', t); applyTheme(t);
+});
+
+// ── Toast ────────────────────────────────────────────────
+function showToast(msg, type = 'success', duration = 3000) {
+    const t = document.getElementById('toast');
+    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warn: 'fa-exclamation-triangle' };
+    t.className = `toast toast-${type}`;
+    t.innerHTML = `<i class="fas ${icons[type]}"></i> ${msg}`;
+    setTimeout(() => t.classList.add('show'), 10);
+    setTimeout(() => t.classList.remove('show'), duration);
+}
+
+// ── Offline ──────────────────────────────────────────────
+window.addEventListener('online', () => {
+    document.getElementById('offline-banner').style.display = 'none';
+    syncOfflineQueue();
+});
+window.addEventListener('offline', () => {
+    document.getElementById('offline-banner').style.display = 'block';
+});
+
+async function syncOfflineQueue() {
+    if (!offlineQueue.length || !clientesRef) return;
+    showToast(`Sincronizando ${offlineQueue.length} lead(s) salvos offline...`, 'warn');
+    for (const lead of offlineQueue) {
+        try { await addDoc(clientesRef, lead); } catch(e) { console.error(e); }
+    }
+    offlineQueue = [];
+    localStorage.removeItem('offlineLeads');
+    updateOfflineBadge();
+    showToast('Leads sincronizados com sucesso!');
+}
+
+function updateOfflineBadge() {
+    const badge = document.getElementById('offline-queue-badge');
+    const count = document.getElementById('offline-queue-count');
+    if (offlineQueue.length > 0) {
+        badge.classList.remove('hidden');
+        count.textContent = offlineQueue.length;
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+// Load offline queue from localStorage
+const savedQueue = localStorage.getItem('offlineLeads');
+if (savedQueue) { offlineQueue = JSON.parse(savedQueue); updateOfflineBadge(); }
+
+// ── Choice Buttons ───────────────────────────────────────
+document.querySelectorAll('[data-field]').forEach(group => {
+    group.querySelectorAll('.choice-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            const field = group.dataset.field;
+            const val = btn.dataset.value;
+            const hiddenMap = {
+                responsavelConta: 'responsavelContaVal',
+                contatoDecisor: 'contatoDecisorVal',
+                conversaDemanda: 'conversaDemandaVal',
+                pedirRO: 'pedirROVal',
+                proximoPasso: 'proximoPassoVal'
+            };
+            const hidden = document.getElementById(hiddenMap[field]);
+            if (hidden) hidden.value = val;
+
+            if (field === 'conversaDemanda') {
+                document.getElementById('demandasContainer').classList.toggle('hidden', val !== 'sim');
+            }
+            if (field === 'proximoPasso') {
+                document.getElementById('dataHoraAgendadaContainer').classList.toggle('hidden', val !== 'sdrAgenda');
+                document.getElementById('sdrSelectorContainer').classList.toggle('hidden', val !== 'sdrAgenda');
+            }
+        });
+    });
+});
+
+// Origem group
+document.getElementById('origem-group').querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById('origem-group').querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('origemContato').value = btn.dataset.value;
+    });
+});
+
+// ── Phone mask ───────────────────────────────────────────
+function maskPhone(v) {
+    v = v.replace(/\D/g, '').substring(0, 11);
+    v = v.replace(/^(\d{2})(\d)/, '($1) $2');
+    v = v.replace(/(\d{5})(\d)/, '$1-$2');
+    return v;
+}
+document.getElementById('phone').addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+
+// ── Email validation ─────────────────────────────────────
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+let emailCheckTimeout;
+document.getElementById('lead_email').addEventListener('input', e => {
+    const val = e.target.value.trim();
+    const icon = document.getElementById('email-validation-icon');
+    icon.classList.add('hidden');
+    document.getElementById('duplicate-email-warning').style.display = 'none';
+    clearTimeout(emailCheckTimeout);
+    if (!val) return;
+    if (!isValidEmail(val)) {
+        icon.className = 'field-icon text-red-400';
+        icon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        icon.classList.remove('hidden');
+        return;
+    }
+    icon.className = 'field-icon text-green-400';
+    icon.innerHTML = '<i class="fas fa-check-circle"></i>';
+    icon.classList.remove('hidden');
+    emailCheckTimeout = setTimeout(() => checkDuplicate('email', val), 500);
+});
+
+let phoneCheckTimeout;
+document.getElementById('phone').addEventListener('input', e => {
+    const val = e.target.value.trim();
+    clearTimeout(phoneCheckTimeout);
+    document.getElementById('duplicate-phone-warning').style.display = 'none';
+    if (val.length < 14) return;
+    phoneCheckTimeout = setTimeout(() => checkDuplicate('phone', val), 500);
+});
+
+function checkDuplicate(field, value) {
+    const eventoSel = document.getElementById('evento').value;
+    const matches = allClients.filter(c => {
+        const sameField = (c[field] || '').toLowerCase() === value.toLowerCase();
+        const sameEvent = !eventoSel || c.evento === eventoSel;
+        return sameField && sameEvent;
+    });
+    if (matches.length > 0) {
+        const lead = matches[0];
+        if (field === 'email') {
+            document.getElementById('duplicate-email-msg').textContent = `Este e-mail já foi cadastrado para "${lead.name}" no evento "${lead.evento}".`;
+            document.getElementById('duplicate-email-warning').style.display = 'block';
+        } else {
+            document.getElementById('duplicate-phone-msg').textContent = `Este telefone já foi cadastrado para "${lead.name}" no evento "${lead.evento}".`;
+            document.getElementById('duplicate-phone-warning').style.display = 'block';
+        }
+    }
+}
+
+// ── Auth ─────────────────────────────────────────────────
+document.getElementById('togglePassword').addEventListener('click', () => {
+    const i = document.getElementById('password');
+    i.type = i.type === 'password' ? 'text' : 'password';
+});
+document.getElementById('toggleConfirmPassword').addEventListener('click', () => {
+    const i = document.getElementById('confirmPassword');
+    i.type = i.type === 'password' ? 'text' : 'password';
+});
+
+document.getElementById('forgot-password-link').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('login-container').classList.add('hidden');
+    document.getElementById('reset-password-container').classList.remove('hidden');
+});
+document.getElementById('back-to-login-link').addEventListener('click', e => {
+    e.preventDefault();
+    document.getElementById('reset-password-container').classList.add('hidden');
+    document.getElementById('login-container').classList.remove('hidden');
+});
+document.getElementById('back-to-login-from-success-btn').addEventListener('click', () => {
+    document.getElementById('registration-success-container').classList.add('hidden');
+    document.getElementById('login-container').classList.remove('hidden');
+    if (!isLoginMode) toggleAuthMode();
+});
+
+function toggleAuthMode() {
+    isLoginMode = !isLoginMode;
+    document.getElementById('form-title').textContent = isLoginMode ? 'Entrar' : 'Criar conta';
+    document.getElementById('authButton').querySelector('.button-text').textContent = isLoginMode ? 'Entrar' : 'Cadastrar';
+    document.getElementById('login-actions').classList.toggle('hidden', !isLoginMode);
+    document.getElementById('register-actions').classList.toggle('hidden', isLoginMode);
+    document.getElementById('nameFieldsContainer').classList.toggle('hidden', isLoginMode);
+    document.getElementById('confirmPasswordContainer').classList.toggle('hidden', isLoginMode);
+    document.getElementById('auth-error').classList.add('hidden');
+    document.getElementById('authForm').reset();
+}
+document.getElementById('toggle-form-link').addEventListener('click', e => { e.preventDefault(); toggleAuthMode(); });
+document.getElementById('back-to-login-btn').addEventListener('click', e => { e.preventDefault(); toggleAuthMode(); });
+
+document.getElementById('authForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('authButton');
+    const errEl = document.getElementById('auth-error');
+    errEl.classList.add('hidden');
+    btn.disabled = true;
+    btn.querySelector('.button-text').classList.add('hidden');
+    btn.querySelector('.spinner').classList.remove('hidden');
+    try {
+        if (isLoginMode) {
+            await signInWithEmailAndPassword(auth, email, password);
+        } else {
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            if (!firstName || !lastName) throw { message: 'Preencha nome e sobrenome.' };
+            if (password.length < 6) throw { message: 'A senha deve ter pelo menos 6 caracteres.' };
+            if (password !== confirmPassword) throw { message: 'As senhas não coincidem.' };
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            await setDoc(doc(db, 'users', cred.user.uid), { email, role: 'comum', status: 'pending', nome: firstName, sobrenome: lastName });
+            await signOut(auth);
+            document.getElementById('login-container').classList.add('hidden');
+            document.getElementById('registration-success-container').classList.remove('hidden');
+        }
+    } catch (err) {
+        const msgs = { 'auth/email-already-in-use': 'Este e-mail já está em uso.', 'auth/invalid-credential': 'Credenciais inválidas.' };
+        errEl.textContent = msgs[err.code] || err.message || 'Falha na autenticação.';
+        errEl.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('.button-text').classList.remove('hidden');
+        btn.querySelector('.spinner').classList.add('hidden');
+    }
+});
+
+document.getElementById('resetPasswordForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('resetEmail').value;
+    const btn = e.target.querySelector('button[type="submit"]');
+    const msg = document.getElementById('reset-message');
+    btn.disabled = true;
+    msg.classList.add('hidden');
+    try {
+        await sendPasswordResetEmail(auth, email);
+        msg.textContent = 'E-mail de recuperação enviado! Verifique sua caixa de entrada.';
+        msg.className = 'text-sm text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg p-3';
+        msg.classList.remove('hidden');
+    } catch (err) {
+        msg.textContent = err.code === 'auth/user-not-found' ? 'Nenhuma conta encontrada com este e-mail.' : 'Erro ao enviar. Tente novamente.';
+        msg.className = 'text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3';
+        msg.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+    }
+});
+
+document.getElementById('logoutButton').addEventListener('click', () => signOut(auth));
+
+onAuthStateChanged(auth, async user => {
+    if (user) {
+        currentUserId = user.uid;
+        try {
+            const snap = await getDoc(doc(db, 'users', user.uid));
+            if (!snap.exists()) { signOut(auth); return; }
+            currentUserData = snap.data();
+            if (currentUserData.status === 'approved') {
+                currentUserRole = currentUserData.role;
+                document.getElementById('welcomeMessage').textContent = `Olá, ${currentUserData.nome}`;
+                document.getElementById('auth-wrapper').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                clientesRef = collection(db, 'clientes');
+                eventosRef = collection(db, 'eventos');
+                usersRef = collection(db, 'users');
+                updateUIVisibility();
+                setupListeners();
+                if (navigator.onLine) syncOfflineQueue();
+            } else if (currentUserData.status === 'pending') {
+                signOut(auth);
+                showAuthError('Conta pendente de aprovação.');
+            } else {
+                signOut(auth);
+                showAuthError('Acesso negado.');
+            }
+        } catch (err) {
+            console.error(err);
+            signOut(auth);
+            showAuthError('Erro de permissão. Tente novamente.');
+        }
+    } else {
+        currentUserId = null;
+        document.getElementById('auth-wrapper').classList.remove('hidden');
+        document.getElementById('app-container').classList.add('hidden');
+        if (unsubClientes) unsubClientes();
+        if (unsubEventos) unsubEventos();
+        if (unsubUsers) unsubUsers();
+    }
+});
+
+function showAuthError(msg) {
+    const el = document.getElementById('auth-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    document.getElementById('login-container').classList.remove('hidden');
+}
+
+// ── UI Visibility ────────────────────────────────────────
+function updateUIVisibility() {
+    const isAdmin = currentUserRole === 'admin';
+    const isEditor = currentUserRole === 'editor';
+    document.getElementById('tab-admin-btn').classList.toggle('hidden', !isAdmin);
+    document.getElementById('tab-usuarios-btn').classList.toggle('hidden', !isAdmin);
+    document.getElementById('exportXlsxButton').classList.toggle('hidden', !(isAdmin || isEditor));
+    handleFilterChange();
+}
+
+// ── Tabs ─────────────────────────────────────────────────
+const tabs = ['cadastro', 'registros', 'analytics', 'admin', 'usuarios'];
+tabs.forEach(t => {
+    const btn = document.getElementById(`tab-${t}-btn`);
+    if (btn) btn.addEventListener('click', () => switchTab(t));
+});
+
+function switchTab(target) {
+    tabs.forEach(t => {
+        const btn = document.getElementById(`tab-${t}-btn`);
+        const content = document.getElementById(`tab-${t}-content`);
+        if (btn) btn.classList.toggle('active', t === target);
+        if (content) { content.classList.toggle('hidden', t !== target); if (t === target) content.classList.add('fade-in'); }
+    });
+    if (target === 'registros') {
+        clientSort = { key: 'createdAt', dir: 'desc' };
+        handleFilterChange();
+    }
+    if (target === 'analytics') renderAnalytics();
+}
+
+// ── Realtime Listeners ───────────────────────────────────
+function setupListeners() {
+    if (unsubClientes) unsubClientes();
+    const q = currentUserRole === 'parceiro'
+        ? query(clientesRef, where('responsavel', '==', `${currentUserData.nome} ${currentUserData.sobrenome}`))
+        : query(clientesRef);
+    unsubClientes = onSnapshot(q, snap => {
+        allClients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        populateFilters();
+        handleFilterChange();
+        if (document.getElementById('tab-analytics-content') && !document.getElementById('tab-analytics-content').classList.contains('hidden')) {
+            renderAnalytics();
+        }
+    });
+
+    if (unsubEventos) unsubEventos();
+    unsubEventos = onSnapshot(query(eventosRef), snap => {
+        allEvents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        populateEventDropdowns();
+        renderEventList();
+        autoSelectEvent();
+    });
+
+    if (unsubUsers) unsubUsers();
+    unsubUsers = onSnapshot(query(usersRef), snap => {
+        allUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        populateSdrDropdown(document.getElementById('sdrSelector'));
+        populateResponsavelFilter();
+        if (currentUserRole === 'admin') renderUserTable();
+    });
+}
+
+// ── Filters ──────────────────────────────────────────────
+function populateFilters() {
+    // no-op — handled by populateResponsavelFilter + populateEventDropdowns
+}
+
+function populateResponsavelFilter() {
+    const sel = document.getElementById('filtroResponsavel');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="Todos">Todos</option><option value="Não atribuído">Não atribuído</option>';
+    allUsers.filter(u => u.status === 'approved').sort((a, b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`)).forEach(u => {
+        sel.innerHTML += `<option value="${u.nome} ${u.sobrenome}">${u.nome} ${u.sobrenome}</option>`;
+    });
+    sel.value = cur;
+}
+
+function countActiveFilters() {
+    let c = 0;
+    if (document.getElementById('filtroEvento').value !== 'Todos') c++;
+    if (document.getElementById('filtroResponsavel').value !== 'Todos') c++;
+    if (document.getElementById('filtroReuniao').value !== 'Todos') c++;
+    if (document.getElementById('filtroOrigem').value !== 'Todos') c++;
+    return c;
+}
+
+function handleFilterChange() {
+    let filtered = [...allClients];
+    const texto = document.getElementById('filtroTexto').value.toLowerCase();
+    const evFilter = document.getElementById('filtroEvento').value;
+    const respFilter = document.getElementById('filtroResponsavel').value;
+    const reuFilter = document.getElementById('filtroReuniao').value;
+    const origFilter = document.getElementById('filtroOrigem').value;
+
+    if (texto) filtered = filtered.filter(c => [c.name, c.email, c.company].some(f => (f || '').toLowerCase().includes(texto)));
+    if (evFilter !== 'Todos') filtered = filtered.filter(c => c.evento === evFilter);
+    if (respFilter === 'Não atribuído') filtered = filtered.filter(c => !c.responsavel);
+    else if (respFilter !== 'Todos') filtered = filtered.filter(c => c.responsavel === respFilter);
+    if (reuFilter !== 'Todos') filtered = filtered.filter(c => getReuniaoStatus(c) === reuFilter);
+    if (origFilter !== 'Todos') filtered = filtered.filter(c => c.origemContato === origFilter);
+
+    // Sort
+    filtered.sort((a, b) => {
+        if (clientSort.key === 'createdAt') {
+            const at = a.createdAt?.toMillis?.() || 0, bt = b.createdAt?.toMillis?.() || 0;
+            return clientSort.dir === 'desc' ? bt - at : at - bt;
+        }
+        const av = String(a[clientSort.key] || '').toLowerCase(), bv = String(b[clientSort.key] || '').toLowerCase();
+        return clientSort.dir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+
+    renderTable(filtered);
+    renderRegistrosStats(filtered);
+
+    // Update filter badge
+    activeFilters = countActiveFilters();
+    const badge = document.getElementById('filter-count-badge');
+    if (activeFilters > 0) { badge.textContent = activeFilters; badge.classList.remove('hidden'); }
+    else badge.classList.add('hidden');
+}
+
+[document.getElementById('filtroTexto'), document.getElementById('filtroEvento'), document.getElementById('filtroResponsavel'), document.getElementById('filtroReuniao'), document.getElementById('filtroOrigem')].forEach(el => el?.addEventListener('input', handleFilterChange));
+
+document.getElementById('clearFiltersButton').addEventListener('click', () => {
+    ['filtroTexto','filtroEvento','filtroResponsavel','filtroReuniao','filtroOrigem'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = el.tagName === 'SELECT' ? el.options[0].value : '';
+    });
+    handleFilterChange();
+});
+
+// Table sort
+document.querySelector('#clientTableBody')?.closest('table')?.querySelector('thead')?.addEventListener('click', e => {
+    const th = e.target.closest('.sortable');
+    if (!th) return;
+    const key = th.dataset.sort;
+    clientSort = { key, dir: clientSort.key === key && clientSort.dir === 'asc' ? 'desc' : 'asc' };
+    handleFilterChange();
+});
+
+// ── Registros Stats ──────────────────────────────────────
+function renderRegistrosStats(clients) {
+    const total = clients.length;
+    const agendadas = clients.filter(c => getReuniaoStatus(c) === 'Agendada').length;
+    const realizadas = clients.filter(c => getReuniaoStatus(c) === 'Realizada').length;
+    const aDefinir = clients.filter(c => getReuniaoStatus(c) === 'A definir').length;
+
+    document.getElementById('registros-stats').innerHTML = `
+        <div class="metric-card flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600"><i class="fas fa-users text-sm"></i></div>
+            <div><p class="text-2xl font-bold">${total}</p><p class="text-xs text-slate-400">Total</p></div>
+        </div>
+        <div class="metric-card flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600"><i class="fas fa-clock text-sm"></i></div>
+            <div><p class="text-2xl font-bold">${aDefinir}</p><p class="text-xs text-slate-400">A definir</p></div>
+        </div>
+        <div class="metric-card flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600"><i class="fas fa-calendar-check text-sm"></i></div>
+            <div><p class="text-2xl font-bold">${agendadas}</p><p class="text-xs text-slate-400">Agendadas</p></div>
+        </div>
+        <div class="metric-card flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600"><i class="fas fa-handshake text-sm"></i></div>
+            <div><p class="text-2xl font-bold">${realizadas}</p><p class="text-xs text-slate-400">Realizadas</p></div>
+        </div>
+    `;
+}
+
+// ── Render Table ─────────────────────────────────────────
+function renderTable(clients) {
+    const tbody = document.getElementById('clientTableBody');
+    const isAdmin = currentUserRole === 'admin';
+    const isEditor = currentUserRole === 'editor';
+    const isSDR = currentUserRole === 'sdr';
+    const approvedUsers = allUsers.filter(u => u.status === 'approved').sort((a,b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`));
+
+    document.getElementById('table-count').textContent = `${clients.length} registro${clients.length !== 1 ? 's' : ''}`;
+
+    if (!clients.length) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-12 text-slate-400">
+            <i class="fas fa-inbox text-3xl mb-3 block opacity-30"></i>
+            Nenhum registro encontrado.
+        </td></tr>`;
+        return;
+    }
+
+    const origemLabel = { estande: 'Estande', palestra: 'Palestra', networking: 'Networking', indicacao: 'Indicação', outro: 'Outro' };
+
+    tbody.innerHTML = clients.map(client => {
+        const status = getReuniaoStatus(client);
+        const badges = {
+            'Realizada': 'badge-blue',
+            'Agendada': 'badge-green',
+            'A definir': 'badge-yellow',
+            'Não Definido': 'badge-gray'
+        };
+        const isOwner = client.createdBy === currentUserId;
+        const isResp = isSDR && client.responsavel === `${currentUserData.nome} ${currentUserData.sobrenome}`;
+        const canEdit = isAdmin || isEditor || isResp || (['comum','vendedor','parceiro'].includes(currentUserRole) && isOwner);
+        const canDelete = canEdit;
+
+        let respCell;
+        if (isAdmin) {
+            respCell = `<select class="responsavel-select bg-transparent border-0 text-sm focus:ring-0 p-0 max-w-[140px]" data-lead-id="${client.id}">
+                <option value="">—</option>
+                ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}" ${`${u.nome} ${u.sobrenome}` === client.responsavel ? 'selected' : ''}>${u.nome} ${u.sobrenome}</option>`).join('')}
+            </select>`;
+        } else {
+            respCell = `<span class="text-sm">${client.responsavel || '—'}</span>`;
+        }
+
+        return `<tr class="cursor-pointer" data-id="${client.id}">
+            <td>${respCell}</td>
+            <td class="hidden md:table-cell text-sm text-slate-500">${client.evento || '—'}</td>
+            <td>
+                <div class="font-medium text-sm">${client.name}</div>
+                <div class="text-xs text-slate-400">${client.company || ''}</div>
+            </td>
+            <td class="hidden lg:table-cell text-sm text-slate-500">${client.company || '—'}</td>
+            <td class="hidden sm:table-cell"><span class="text-xs text-slate-400">${origemLabel[client.origemContato] || '—'}</span></td>
+            <td><span class="badge ${badges[status] || 'badge-gray'}">${status}</span></td>
+            <td class="text-right actions-cell">
+                <div class="flex items-center justify-end gap-1">
+                    <button class="view-more-btn w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-brand-600 transition-colors" data-id="${client.id}">
+                        <i class="fas fa-eye text-xs"></i>
+                    </button>
+                    ${canEdit ? `<button class="edit-btn w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-brand-600 transition-colors" data-id="${client.id}">
+                        <i class="fas fa-pen text-xs"></i>
+                    </button>` : ''}
+                    ${canDelete ? `<button class="delete-btn w-7 h-7 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center justify-center text-slate-400 hover:text-red-500 transition-colors" data-id="${client.id}" data-type="client">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>` : ''}
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// Table click handler
+document.getElementById('clientTableBody').addEventListener('click', e => {
+    if (e.target.closest('.actions-cell') || e.target.tagName === 'SELECT') return;
+    const row = e.target.closest('tr[data-id]');
+    if (!row) return;
+    const client = allClients.find(c => c.id === row.dataset.id);
+    if (client) { populateViewModal(client); document.getElementById('viewLeadModal').classList.remove('hidden'); }
+});
+
+document.getElementById('clientTableBody').addEventListener('click', e => {
+    const editBtn = e.target.closest('.edit-btn');
+    const deleteBtn = e.target.closest('.delete-btn');
+    const viewBtn = e.target.closest('.view-more-btn');
+    if (editBtn) {
+        clientToEditId = editBtn.dataset.id;
+        const c = allClients.find(x => x.id === clientToEditId);
+        if (c) { populateEditModal(c); document.getElementById('editModal').classList.remove('hidden'); }
+    }
+    if (deleteBtn) {
+        itemToDelete = { id: deleteBtn.dataset.id, type: 'client' };
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+    if (viewBtn) {
+        const client = allClients.find(c => c.id === viewBtn.dataset.id);
+        if (client) { populateViewModal(client); document.getElementById('viewLeadModal').classList.remove('hidden'); }
+    }
+});
+
+document.getElementById('clientTableBody').addEventListener('change', async e => {
+    if (!e.target.classList.contains('responsavel-select')) return;
+    e.stopPropagation();
+    try {
+        await updateDoc(doc(db, 'clientes', e.target.dataset.leadId), { responsavel: e.target.value });
+    } catch (err) { console.error(err); }
+});
+
+// ── Form Submit ──────────────────────────────────────────
+document.getElementById('clientForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const name = document.getElementById('name').value.trim();
+    const leadEmail = document.getElementById('lead_email').value.trim();
+
+    if (!name) { showToast('Nome é obrigatório.', 'error'); return; }
+    if (!leadEmail || !isValidEmail(leadEmail)) { showToast('E-mail inválido.', 'error'); return; }
+
+    const btn = document.getElementById('saveButton');
+    btn.disabled = true;
+    btn.querySelector('.button-text').classList.add('hidden');
+    btn.querySelector('.spinner').classList.remove('hidden');
+
+    const creatorName = `${currentUserData.nome} ${currentUserData.sobrenome}`;
+    const proximoPasso = document.getElementById('proximoPassoVal').value;
+
+    const lead = {
+        evento: document.getElementById('evento').value,
+        name,
+        company: document.getElementById('company').value.trim(),
+        email: leadEmail,
+        phone: document.getElementById('phone').value.trim(),
+        origemContato: document.getElementById('origemContato').value,
+        responsavelConta: document.getElementById('responsavelContaVal').value === 'sim',
+        contatoDecisor: document.getElementById('contatoDecisorVal').value === 'sim',
+        conversaDemanda: document.getElementById('conversaDemandaVal').value === 'sim',
+        pedirRO: document.getElementById('pedirROVal').value === 'sim',
+        demandas: Array.from(document.querySelectorAll('input[name="demandas"]:checked')).map(c => c.value),
+        reuniaoAgendada: proximoPasso === 'euAgendo',
+        agendarReuniao: proximoPasso === 'sdrAgenda',
+        nutricaoMKT: proximoPasso === 'nutricaoMKT',
+        anotacoes: document.getElementById('anotacoes').value.trim(),
+        reuniaoData: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoDataInput').value : null,
+        reuniaoHora: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoHoraInput').value : null,
+        reuniaoAgendadaPor: proximoPasso === 'sdrAgenda' ? document.getElementById('sdrSelector').value : null,
+        createdAt: new Date(),
+        createdBy: currentUserId,
+        creatorName,
+        responsavel: creatorName,
+        reuniaoRealizada: false,
+        realizadaPor: null
+    };
+
+    try {
+        if (navigator.onLine) {
+            await addDoc(clientesRef, lead);
+            showToast('Lead salvo com sucesso!');
+        } else {
+            offlineQueue.push(lead);
+            localStorage.setItem('offlineLeads', JSON.stringify(offlineQueue));
+            updateOfflineBadge();
+            showToast('Sem conexão. Lead salvo localmente.', 'warn');
+        }
+        resetForm();
+        switchTab('registros');
+    } catch (err) {
+        console.error(err);
+        showToast('Erro ao salvar o lead.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.querySelector('.button-text').classList.remove('hidden');
+        btn.querySelector('.spinner').classList.add('hidden');
+    }
+});
+
+function resetForm() {
+    document.getElementById('clientForm').reset();
+    document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    ['responsavelContaVal','contatoDecisorVal','conversaDemandaVal','pedirROVal','proximoPassoVal','origemContato'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.getElementById('demandasContainer').classList.add('hidden');
+    document.getElementById('dataHoraAgendadaContainer').classList.add('hidden');
+    document.getElementById('sdrSelectorContainer').classList.add('hidden');
+    document.getElementById('duplicate-email-warning').style.display = 'none';
+    document.getElementById('duplicate-phone-warning').style.display = 'none';
+    document.getElementById('email-validation-icon').classList.add('hidden');
+}
+
+// ── Event Dropdowns ──────────────────────────────────────
+function populateEventDropdowns() {
+    ['evento','filtroEvento','analytics-evento-filter'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        const cur = sel.value;
+        sel.innerHTML = id === 'evento' ? '<option value="">Selecione o evento</option>' : id === 'analytics-evento-filter' ? '<option value="todos">Todos os eventos</option>' : '<option value="Todos">Todos os Eventos</option>';
+        allEvents.forEach(ev => sel.innerHTML += `<option value="${ev.name}">${ev.name}</option>`);
+        sel.value = cur;
+    });
+}
+
+function autoSelectEvent() {
+    const sel = document.getElementById('evento');
+    if (!allEvents.length) return;
+    const today = new Date(); today.setHours(0,0,0,0);
+    const parse = s => s ? new Date(s + 'T00:00:00') : null;
+    const active = allEvents.find(ev => { const s = parse(ev.startDate), e = parse(ev.endDate); return s && e && s <= today && today <= e; });
+    if (active) { sel.value = active.name; return; }
+    const upcoming = allEvents.filter(ev => parse(ev.startDate) >= today).sort((a,b) => parse(a.startDate) - parse(b.startDate));
+    if (upcoming.length) { sel.value = upcoming[0].name; return; }
+    const past = allEvents.filter(ev => parse(ev.endDate) < today).sort((a,b) => parse(b.endDate) - parse(a.endDate));
+    if (past.length) sel.value = past[0].name;
+}
+
+function populateSdrDropdown(sel) {
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Selecionar SDR</option>';
+    allUsers.filter(u => u.role === 'sdr' && u.status === 'approved').forEach(u => {
+        sel.innerHTML += `<option value="${u.nome} ${u.sobrenome}">${u.nome} ${u.sobrenome}</option>`;
+    });
+    sel.value = cur;
+}
+
+// ── Events Admin ─────────────────────────────────────────
+document.getElementById('eventForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    await addDoc(eventosRef, { name: document.getElementById('eventName').value, startDate: document.getElementById('eventStartDate').value, endDate: document.getElementById('eventEndDate').value });
+    e.target.reset();
+    showToast('Evento adicionado!');
+});
+
+function renderEventList() {
+    const list = document.getElementById('eventList');
+    if (!allEvents.length) { list.innerHTML = '<li class="text-sm text-slate-400">Nenhum evento.</li>'; return; }
+    list.innerHTML = allEvents.map(ev => `
+        <li class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm">
+            <div>
+                <p class="font-medium">${ev.name}</p>
+                <p class="text-xs text-slate-400">${new Date(ev.startDate+'T00:00:00').toLocaleDateString('pt-BR')} — ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('pt-BR')}</p>
+            </div>
+            <button class="delete-btn w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500" data-id="${ev.id}" data-type="event">
+                <i class="fas fa-trash text-xs"></i>
+            </button>
+        </li>`).join('');
+}
+
+// main delete handler
+document.querySelector('main').addEventListener('click', e => {
+    const deleteBtn = e.target.closest('.delete-btn:not(#clientTableBody .delete-btn)');
+    if (deleteBtn && !e.target.closest('#clientTableBody')) {
+        itemToDelete = { id: deleteBtn.dataset.id, type: deleteBtn.dataset.type };
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+});
+
+// ── Delete Modal ─────────────────────────────────────────
+document.getElementById('cancelDeleteButton').addEventListener('click', () => {
+    itemToDelete = { id: null, type: null };
+    document.getElementById('deleteModal').classList.add('hidden');
+});
+document.getElementById('confirmDeleteButton').addEventListener('click', async () => {
+    if (!itemToDelete.id) return;
+    try {
+        if (itemToDelete.type === 'client') await deleteDoc(doc(clientesRef, itemToDelete.id));
+        else if (itemToDelete.type === 'event') await deleteDoc(doc(eventosRef, itemToDelete.id));
+        else await deleteDoc(doc(usersRef, itemToDelete.id));
+        showToast('Excluído com sucesso!');
+    } catch (err) { showToast('Erro ao excluir.', 'error'); }
+    itemToDelete = { id: null, type: null };
+    document.getElementById('deleteModal').classList.add('hidden');
+});
+
+// ── View Lead Modal ──────────────────────────────────────
+function populateViewModal(client) {
+    const status = getReuniaoStatus(client, true);
+    const origemLabel = { estande: 'Estande', palestra: 'Palestra', networking: 'Networking', indicacao: 'Indicação', outro: 'Outro' };
+    let createdInfo = '';
+    if (client.createdAt?.toDate) {
+        const d = client.createdAt.toDate();
+        createdInfo = `<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400 text-xs">Criado em</span><span class="text-xs font-medium">${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR')}</span></div>`;
+    }
+
+    document.getElementById('viewLeadModalContent').innerHTML = `
+        <div class="flex items-start justify-between mb-5">
+            <div>
+                <h3 class="text-xl font-bold">${client.name}</h3>
+                <p class="text-sm text-slate-400">${client.company || ''}</p>
+            </div>
+            <span class="badge ${client.reuniaoRealizada ? 'badge-blue' : client.reuniaoAgendada ? 'badge-green' : client.agendarReuniao ? 'badge-yellow' : 'badge-gray'}">${status}</span>
+        </div>
+        <div class="space-y-0 text-sm">
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">E-mail</span><span class="font-medium">${client.email || '—'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Telefone</span><span class="font-medium">${client.phone || '—'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Evento</span><span class="font-medium">${client.evento || '—'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Responsável</span><span class="font-medium">${client.responsavel || '—'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Origem</span><span class="font-medium">${origemLabel[client.origemContato] || '—'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Resp. pela conta</span><span class="font-medium">${client.responsavelConta ? 'Sim' : 'Não'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Decisor</span><span class="font-medium">${client.contatoDecisor ? 'Sim' : 'Não'}</span></div>
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Conversa sobre demanda</span><span class="font-medium">${client.conversaDemanda ? 'Sim' : 'Não'}</span></div>
+            ${client.demandas?.length ? `<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Demandas</span><span class="font-medium text-right">${client.demandas.join(', ')}</span></div>` : ''}
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Pedir RO</span><span class="font-medium">${client.pedirRO ? 'Sim' : 'Não'}</span></div>
+            ${client.reuniaoAgendadaPor ? `<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Agendado por</span><span class="font-medium">${client.reuniaoAgendadaPor}</span></div>` : ''}
+            ${client.realizadaPor ? `<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Realizado por</span><span class="font-medium">${client.realizadaPor}</span></div>` : ''}
+            <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Criado por</span><span class="font-medium">${client.creatorName || '—'}</span></div>
+            ${createdInfo}
+            ${client.anotacoes ? `<div class="pt-3"><p class="text-slate-400 text-xs mb-1">Observações</p><p class="text-sm whitespace-pre-wrap bg-slate-50 dark:bg-slate-800 rounded-lg p-3">${client.anotacoes}</p></div>` : ''}
+        </div>`;
+
+    const footer = document.getElementById('viewLeadModalFooter');
+    footer.innerHTML = '';
+    const isOwner = client.createdBy === currentUserId;
+    const isAdmin = currentUserRole === 'admin', isEditor = currentUserRole === 'editor', isSDR = currentUserRole === 'sdr';
+    const isResp = isSDR && client.responsavel === `${currentUserData.nome} ${currentUserData.sobrenome}`;
+    const canEdit = isAdmin || isEditor || isResp || (['comum','vendedor','parceiro'].includes(currentUserRole) && isOwner);
+
+    if (canEdit) {
+        const btn = document.createElement('button');
+        btn.className = 'btn-primary';
+        btn.innerHTML = '<i class="fas fa-pen"></i> Editar';
+        btn.onclick = () => {
+            clientToEditId = client.id;
+            document.getElementById('viewLeadModal').classList.add('hidden');
+            populateEditModal(client);
+            document.getElementById('editModal').classList.remove('hidden');
+        };
+        footer.appendChild(btn);
+    }
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'btn-secondary';
+    closeBtn.textContent = 'Fechar';
+    closeBtn.onclick = () => document.getElementById('viewLeadModal').classList.add('hidden');
+    footer.appendChild(closeBtn);
+}
+
+// ── Edit Lead Modal ──────────────────────────────────────
+function populateEditModal(client) {
+    const isAdmin = currentUserRole === 'admin';
+    const approvedUsers = allUsers.filter(u => u.status === 'approved').sort((a,b) => `${a.nome} ${a.sobrenome}`.localeCompare(`${b.nome} ${b.sobrenome}`));
+    const vendedores = allUsers.filter(u => u.role === 'vendedor' && u.status === 'approved');
+
+    document.getElementById('editClientForm').innerHTML = `
+        <div class="flex items-center justify-between mb-5">
+            <h3 class="text-lg font-bold">Editar Lead: ${client.name}</h3>
+            <button type="button" class="cancel-edit-btn w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 hover:bg-slate-200"><i class="fas fa-times text-sm"></i></button>
+        </div>
+        <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-xs text-slate-500 mb-1 block">Evento</label>
+                    <select id="edit_evento" class="form-input text-sm">${allEvents.map(ev => `<option value="${ev.name}" ${ev.name === client.evento ? 'selected':''}>${ev.name}</option>`).join('')}</select>
+                </div>
+                ${isAdmin ? `<div>
+                    <label class="text-xs text-slate-500 mb-1 block">Responsável</label>
+                    <select id="edit_responsavel" class="form-input text-sm">
+                        <option value="">—</option>
+                        ${approvedUsers.map(u => `<option value="${u.nome} ${u.sobrenome}" ${`${u.nome} ${u.sobrenome}` === client.responsavel ? 'selected':''}>${u.nome} ${u.sobrenome}</option>`).join('')}
+                    </select>
+                </div>` : '<div></div>'}
+            </div>
+            <div><label class="text-xs text-slate-500 mb-1 block">Nome *</label><input type="text" id="edit_name" value="${client.name}" class="form-input" required></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="text-xs text-slate-500 mb-1 block">E-mail</label><input type="email" id="edit_email" value="${client.email||''}" class="form-input"></div>
+                <div><label class="text-xs text-slate-500 mb-1 block">Telefone</label><input type="text" id="edit_phone" value="${client.phone||''}" class="form-input" placeholder="(00) 00000-0000"></div>
+            </div>
+            <div><label class="text-xs text-slate-500 mb-1 block">Empresa</label><input type="text" id="edit_company" value="${client.company||''}" class="form-input"></div>
+
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
+                <p class="section-label">Status da Reunião</p>
+                <div class="space-y-3">
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_agendarReuniao" ${client.agendarReuniao?'checked':''} class="rounded"> <span class="text-sm">Para o SDR agendar</span></label>
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_reuniaoAgendada" ${client.reuniaoAgendada?'checked':''} class="rounded"> <span class="text-sm">Reunião Agendada</span></label>
+                    <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_gerarRO" ${client.gerarRO?'checked':''} class="rounded"> <span class="text-sm">Gerar RO/Oportunidade</span></label>
+                </div>
+                <div id="edit_dataHoraContainer" class="hidden mt-3 grid grid-cols-2 gap-3">
+                    <div><label class="text-xs text-slate-500 mb-1 block">Data</label><input type="date" id="edit_reuniaoData" value="${client.reuniaoData||''}" class="form-input"></div>
+                    <div><label class="text-xs text-slate-500 mb-1 block">Hora</label><input type="time" id="edit_reuniaoHora" value="${client.reuniaoHora||''}" class="form-input"></div>
+                </div>
+                <div id="edit_sdrContainer" class="hidden mt-3">
+                    <label class="text-xs text-slate-500 mb-1 block">Agendado por</label>
+                    <select id="edit_sdrSelector" class="form-input text-sm"><option value="">Selecionar SDR</option>${allUsers.filter(u=>u.role==='sdr'&&u.status==='approved').map(u=>`<option value="${u.nome} ${u.sobrenome}" ${`${u.nome} ${u.sobrenome}`===client.reuniaoAgendadaPor?'selected':''}>${u.nome} ${u.sobrenome}</option>`).join('')}</select>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-700 pt-4">
+                <p class="section-label">Pós-Reunião</p>
+                <label class="flex items-center gap-3 cursor-pointer"><input type="checkbox" id="edit_reuniaoRealizada" ${client.reuniaoRealizada?'checked':''} class="rounded"> <span class="text-sm">Reunião Realizada</span></label>
+                <div id="edit_realizadaPorContainer" class="${client.reuniaoRealizada?'':'hidden'} mt-3">
+                    <label class="text-xs text-slate-500 mb-1 block">Realizada por</label>
+                    <select id="edit_realizadaPor" class="form-input text-sm">
+                        <option value="">Selecione</option>
+                        ${vendedores.map(v=>`<option value="${v.nome} ${v.sobrenome}" ${`${v.nome} ${v.sobrenome}`===client.realizadaPor?'selected':''}>${v.nome} ${v.sobrenome}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+
+            <div><label class="text-xs text-slate-500 mb-1 block">Observações</label><textarea id="edit_anotacoes" class="form-input" rows="3">${client.anotacoes||''}</textarea></div>
+        </div>
+        <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-slate-100 dark:border-slate-700">
+            <button type="button" class="cancel-edit-btn btn-secondary">Cancelar</button>
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Salvar</button>
+        </div>`;
+
+    // Edit form interactions
+    const agendarCb = document.getElementById('edit_agendarReuniao');
+    const agendadaCb = document.getElementById('edit_reuniaoAgendada');
+    const realizadaCb = document.getElementById('edit_reuniaoRealizada');
+    function updateEditVisibility() {
+        document.getElementById('edit_dataHoraContainer').classList.toggle('hidden', !agendadaCb.checked);
+        document.getElementById('edit_sdrContainer').classList.toggle('hidden', !agendadaCb.checked);
+        document.getElementById('edit_realizadaPorContainer').classList.toggle('hidden', !realizadaCb.checked);
+    }
+    agendarCb.addEventListener('change', () => { if (agendarCb.checked) agendadaCb.checked = false; updateEditVisibility(); });
+    agendadaCb.addEventListener('change', () => { if (agendadaCb.checked) agendarCb.checked = false; updateEditVisibility(); });
+    realizadaCb.addEventListener('change', updateEditVisibility);
+    updateEditVisibility();
+
+    document.getElementById('edit_phone').addEventListener('input', e => e.target.value = maskPhone(e.target.value));
+    document.querySelectorAll('.cancel-edit-btn').forEach(b => b.addEventListener('click', () => document.getElementById('editModal').classList.add('hidden')));
+}
+
+document.getElementById('editClientForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!clientToEditId) return;
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+        const data = {
+            evento: document.getElementById('edit_evento').value,
+            name: document.getElementById('edit_name').value,
+            email: document.getElementById('edit_email').value,
+            phone: document.getElementById('edit_phone').value,
+            company: document.getElementById('edit_company').value,
+            anotacoes: document.getElementById('edit_anotacoes').value,
+            agendarReuniao: document.getElementById('edit_agendarReuniao').checked,
+            reuniaoAgendada: document.getElementById('edit_reuniaoAgendada').checked,
+            gerarRO: document.getElementById('edit_gerarRO').checked,
+            reuniaoRealizada: document.getElementById('edit_reuniaoRealizada').checked,
+            realizadaPor: document.getElementById('edit_reuniaoRealizada').checked ? document.getElementById('edit_realizadaPor').value : null,
+            reuniaoData: document.getElementById('edit_reuniaoAgendada').checked ? document.getElementById('edit_reuniaoData').value : null,
+            reuniaoHora: document.getElementById('edit_reuniaoAgendada').checked ? document.getElementById('edit_reuniaoHora').value : null,
+            reuniaoAgendadaPor: document.getElementById('edit_reuniaoAgendada').checked ? document.getElementById('edit_sdrSelector').value : null,
+        };
+        if (currentUserRole === 'admin' && document.getElementById('edit_responsavel')) {
+            data.responsavel = document.getElementById('edit_responsavel').value;
+        }
+        await updateDoc(doc(clientesRef, clientToEditId), data);
+        showToast('Lead atualizado!');
+    } catch (err) { showToast('Erro ao atualizar.', 'error'); }
+    finally {
+        if (btn) btn.disabled = false;
+        document.getElementById('editModal').classList.add('hidden');
+        clientToEditId = null;
+    }
+});
+
+// ── Users Table ──────────────────────────────────────────
+function renderUserTable() {
+    const search = document.getElementById('userSearchInput').value.toLowerCase();
+    const filtered = allUsers.filter(u => `${u.nome||''} ${u.sobrenome||''} ${u.email||''}`.toLowerCase().includes(search));
+    const approved = filtered.filter(u => u.status === 'approved');
+    const pending = filtered.filter(u => u.status === 'pending');
+    const deactivated = filtered.filter(u => u.status === 'deactivated');
+
+    document.getElementById('pending-count').textContent = pending.length || '';
+
+    const roleMap = { comum:'Usuário', vendedor:'Vendedor', sdr:'SDR', editor:'Editor', admin:'Admin', parceiro:'Parceiro' };
+
+    document.getElementById('pendingUserTableBody').innerHTML = pending.length ? pending.map(u => `
+        <tr data-userid="${u.id}">
+            <td class="font-medium text-sm">${u.nome} ${u.sobrenome}</td>
+            <td class="text-sm text-slate-500">${u.email}</td>
+            <td><select class="role-select-pending form-input text-sm py-1" data-userid="${u.id}">
+                <option value="comum">Usuário</option><option value="vendedor">Vendedor</option><option value="parceiro">Parceiro</option><option value="sdr">SDR</option><option value="editor">Editor</option><option value="admin">Admin</option>
+            </select></td>
+            <td class="text-right">
+                <button class="approve-btn btn-primary text-xs py-1.5 px-3 mr-1" data-userid="${u.id}"><i class="fas fa-check"></i></button>
+                <button class="reject-btn btn-danger text-xs py-1.5 px-3" data-userid="${u.id}"><i class="fas fa-times"></i></button>
+            </td>
+        </tr>`).join('') : '<tr><td colspan="4" class="text-center py-6 text-slate-400 text-sm">Nenhum usuário pendente.</td></tr>';
+
+    document.getElementById('approvedUserTableBody').innerHTML = approved.length ? approved.map(u => `
+        <tr class="cursor-pointer" data-userid="${u.id}">
+            <td class="font-medium text-sm">${u.nome} ${u.sobrenome}</td>
+            <td class="text-sm text-slate-500">${u.email}</td>
+            <td><span class="badge badge-blue text-xs">${roleMap[u.role]||'N/A'}</span></td>
+            <td class="text-right">
+                ${u.id !== currentUserId ? `
+                <button class="edit-user-btn w-7 h-7 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 inline-flex items-center justify-center text-slate-400 hover:text-brand-600 mr-1" data-userid="${u.id}"><i class="fas fa-pen text-xs"></i></button>
+                <button class="deactivate-btn w-7 h-7 rounded-lg hover:bg-yellow-50 inline-flex items-center justify-center text-slate-400 hover:text-yellow-500 mr-1" data-userid="${u.id}"><i class="fas fa-user-slash text-xs"></i></button>
+                <button class="delete-user-btn w-7 h-7 rounded-lg hover:bg-red-50 inline-flex items-center justify-center text-slate-400 hover:text-red-500" data-userid="${u.id}"><i class="fas fa-trash text-xs"></i></button>
+                ` : '<span class="text-xs text-slate-300">você</span>'}
+            </td>
+        </tr>`).join('') : '<tr><td colspan="4" class="text-center py-6 text-slate-400 text-sm">Nenhum usuário ativo.</td></tr>';
+
+    document.getElementById('deactivatedUserTableBody').innerHTML = deactivated.length ? deactivated.map(u => `
+        <tr data-userid="${u.id}">
+            <td class="font-medium text-sm text-slate-400">${u.nome} ${u.sobrenome}</td>
+            <td class="text-sm text-slate-400">${u.email}</td>
+            <td class="text-sm text-slate-400">${roleMap[u.role]||'N/A'}</td>
+            <td class="text-right">
+                <button class="reactivate-btn w-7 h-7 rounded-lg hover:bg-green-50 inline-flex items-center justify-center text-slate-400 hover:text-green-500 mr-1" data-userid="${u.id}"><i class="fas fa-user-check text-xs"></i></button>
+                <button class="delete-user-btn w-7 h-7 rounded-lg hover:bg-red-50 inline-flex items-center justify-center text-slate-400 hover:text-red-500" data-userid="${u.id}"><i class="fas fa-trash text-xs"></i></button>
+            </td>
+        </tr>`).join('') : '<tr><td colspan="4" class="text-center py-6 text-slate-400 text-sm">Nenhum usuário desativado.</td></tr>';
+}
+
+document.getElementById('userSearchInput').addEventListener('input', renderUserTable);
+
+document.getElementById('tab-usuarios-content').addEventListener('click', async e => {
+    const approve = e.target.closest('.approve-btn');
+    const reject = e.target.closest('.reject-btn');
+    const del = e.target.closest('.delete-user-btn');
+    const edit = e.target.closest('.edit-user-btn');
+    const deactivate = e.target.closest('.deactivate-btn');
+    const reactivate = e.target.closest('.reactivate-btn');
+
+    if (approve) {
+        const uid = approve.dataset.userid;
+        const role = document.querySelector(`.role-select-pending[data-userid="${uid}"]`)?.value || 'comum';
+        await updateDoc(doc(usersRef, uid), { status: 'approved', role, approvedAt: new Date(), approvedBy: `${currentUserData.nome} ${currentUserData.sobrenome}` });
+        showToast('Usuário aprovado!');
+    } else if (reject) {
+        itemToDelete = { id: reject.dataset.userid, type: 'pending-user' };
+        document.getElementById('deleteModal').classList.remove('hidden');
+    } else if (del) {
+        openPasswordConfirm(del.dataset.userid, 'delete-user');
+    } else if (edit) {
+        const u = allUsers.find(x => x.id === edit.dataset.userid);
+        if (u) { populateEditUserModal(u); document.getElementById('editUserModal').classList.remove('hidden'); }
+    } else if (deactivate) {
+        openPasswordConfirm(deactivate.dataset.userid, 'deactivate');
+    } else if (reactivate) {
+        await updateDoc(doc(usersRef, reactivate.dataset.userid), { status: 'approved' });
+        showToast('Usuário reativado!');
+    } else {
+        const row = e.target.closest('tr[data-userid]');
+        if (row && !e.target.closest('button') && !e.target.closest('select')) {
+            const u = allUsers.find(x => x.id === row.dataset.userid);
+            if (u && u.status !== 'pending') { populateEditUserModal(u); document.getElementById('editUserModal').classList.remove('hidden'); }
+        }
+    }
+});
+
+// ── Edit User Modal ──────────────────────────────────────
+function populateEditUserModal(user) {
+    userToEditId = user.id;
+    const roleMap = { comum:'Usuário', vendedor:'Vendedor', sdr:'SDR', editor:'Editor', admin:'Admin', parceiro:'Parceiro' };
+    document.getElementById('editUserForm').innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">Editar Usuário</h3>
+            <button type="button" class="cancel-edit-user-btn w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500"><i class="fas fa-times text-sm"></i></button>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+            <div><label class="text-xs text-slate-500 mb-1 block">Nome</label><input type="text" id="editUserFirstName" value="${user.nome||''}" class="form-input" required></div>
+            <div><label class="text-xs text-slate-500 mb-1 block">Sobrenome</label><input type="text" id="editUserLastName" value="${user.sobrenome||''}" class="form-input" required></div>
+        </div>
+        <div class="mt-3"><label class="text-xs text-slate-500 mb-1 block">Cargo</label>
+            <select id="editUserRole" class="form-input">
+                ${Object.entries(roleMap).map(([v,l]) => `<option value="${v}" ${user.role===v?'selected':''}>${l}</option>`).join('')}
+            </select>
+        </div>
+        ${user.approvedAt?.toDate ? `<div class="mt-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg text-xs text-slate-400">
+            Aprovado por <strong>${user.approvedBy||'N/A'}</strong> em ${user.approvedAt.toDate().toLocaleDateString('pt-BR')}
+        </div>` : ''}
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+            <div class="flex gap-2">
+                <button type="button" class="deactivate-btn-modal btn-secondary text-xs py-2 px-3 text-yellow-600">Desativar</button>
+                <button type="button" class="delete-btn-modal btn-secondary text-xs py-2 px-3 text-red-500">Excluir</button>
+            </div>
+            <button type="submit" class="btn-primary text-sm"><i class="fas fa-save"></i> Salvar</button>
+        </div>`;
+
+    document.querySelector('.cancel-edit-user-btn').addEventListener('click', () => document.getElementById('editUserModal').classList.add('hidden'));
+    document.querySelector('.deactivate-btn-modal').addEventListener('click', () => openPasswordConfirm(userToEditId, 'deactivate'));
+    document.querySelector('.delete-btn-modal').addEventListener('click', () => openPasswordConfirm(userToEditId, 'delete-user'));
+}
+
+document.getElementById('editUserForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    if (!userToEditId) return;
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+        const firstName = document.getElementById('editUserFirstName').value;
+        const lastName = document.getElementById('editUserLastName').value;
+        const role = document.getElementById('editUserRole').value;
+        if (userToEditId === currentUserId && role !== 'admin') { alert('Não pode remover seu próprio acesso de admin.'); return; }
+        const batch = writeBatch(db);
+        batch.update(doc(usersRef, userToEditId), { nome: firstName, sobrenome: lastName, role });
+        const snap = await getDocs(query(clientesRef, where('createdBy','==', userToEditId)));
+        snap.forEach(d => batch.update(doc(clientesRef, d.id), { creatorName: `${firstName} ${lastName}` }));
+        await batch.commit();
+        showToast('Usuário atualizado!');
+    } catch (err) { showToast('Erro ao atualizar.', 'error'); }
+    finally {
+        if (btn) btn.disabled = false;
+        document.getElementById('editUserModal').classList.add('hidden');
+        userToEditId = null;
+    }
+});
+
+// ── Password Confirm ─────────────────────────────────────
+function openPasswordConfirm(userId, type) {
+    actionToConfirm = { userId, type };
+    document.getElementById('passwordConfirmModal').classList.remove('hidden');
+    document.getElementById('passwordConfirmForm').reset();
+    document.getElementById('password-confirm-error').classList.add('hidden');
+    const titles = { deactivate: 'Confirmar Desativação', 'delete-user': 'Confirmar Exclusão' };
+    const msgs = { deactivate: 'Insira sua senha de administrador para desativar este usuário.', 'delete-user': 'Insira sua senha de administrador para excluir permanentemente este usuário.' };
+    document.getElementById('passwordConfirmTitle').textContent = titles[type];
+    document.getElementById('passwordConfirmMessage').textContent = msgs[type];
+}
+document.getElementById('cancel-password-confirm-btn').addEventListener('click', () => document.getElementById('passwordConfirmModal').classList.add('hidden'));
+document.getElementById('passwordConfirmForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    const errEl = document.getElementById('password-confirm-error');
+    errEl.classList.add('hidden');
+    try {
+        const cred = EmailAuthProvider.credential(auth.currentUser.email, document.getElementById('adminPassword').value);
+        await reauthenticateWithCredential(auth.currentUser, cred);
+        if (actionToConfirm.type === 'deactivate') {
+            await updateDoc(doc(usersRef, actionToConfirm.userId), { status: 'deactivated' });
+            showToast('Usuário desativado.');
+        } else {
+            await deleteDoc(doc(usersRef, actionToConfirm.userId));
+            showToast('Usuário excluído.');
+        }
+        document.getElementById('passwordConfirmModal').classList.add('hidden');
+        document.getElementById('editUserModal').classList.add('hidden');
+    } catch (err) {
+        errEl.textContent = 'Senha incorreta.';
+        errEl.classList.remove('hidden');
+    } finally { btn.disabled = false; }
+});
+
+// ── Settings ─────────────────────────────────────────────
+document.getElementById('settings-btn').addEventListener('click', () => {
+    const roleMap = { comum:'Usuário', vendedor:'Vendedor', sdr:'SDR', editor:'Editor', admin:'Admin', parceiro:'Parceiro' };
+    document.getElementById('profileFirstName').value = currentUserData.nome || '';
+    document.getElementById('profileLastName').value = currentUserData.sobrenome || '';
+    document.getElementById('profileEmail').value = currentUserData.email || '';
+    document.getElementById('profileRole').value = roleMap[currentUserRole] || '';
+    document.getElementById('profile-message').classList.add('hidden');
+    document.getElementById('password-change-message').classList.add('hidden');
+    document.getElementById('settingsModal').classList.remove('hidden');
+});
+document.getElementById('cancel-settings-btn-main').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
+
+document.getElementById('userProfileForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    const fn = document.getElementById('profileFirstName').value;
+    const ln = document.getElementById('profileLastName').value;
+    const msg = document.getElementById('profile-message');
+    try {
+        const batch = writeBatch(db);
+        batch.update(doc(usersRef, currentUserId), { nome: fn, sobrenome: ln });
+        const snap = await getDocs(query(clientesRef, where('createdBy','==',currentUserId)));
+        snap.forEach(d => batch.update(doc(clientesRef, d.id), { creatorName: `${fn} ${ln}` }));
+        await batch.commit();
+        currentUserData.nome = fn; currentUserData.sobrenome = ln;
+        document.getElementById('welcomeMessage').textContent = `Olá, ${fn}`;
+        msg.textContent = 'Perfil atualizado!';
+        msg.className = 'text-sm text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg p-3';
+        msg.classList.remove('hidden');
+    } catch { msg.textContent = 'Erro ao atualizar.'; msg.className = 'text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3'; msg.classList.remove('hidden'); }
+    finally { if (btn) btn.disabled = false; }
+});
+
+document.getElementById('passwordChangeForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    const msg = document.getElementById('password-change-message');
+    const cur = document.getElementById('profileCurrentPassword').value;
+    const nw = document.getElementById('profileNewPassword').value;
+    const cnf = document.getElementById('profileConfirmNewPassword').value;
+    msg.classList.add('hidden');
+    if (nw.length < 6) { msg.textContent = 'A senha deve ter pelo menos 6 caracteres.'; msg.className = 'text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3'; msg.classList.remove('hidden'); if (btn) btn.disabled = false; return; }
+    if (nw !== cnf) { msg.textContent = 'As senhas não coincidem.'; msg.className = 'text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3'; msg.classList.remove('hidden'); if (btn) btn.disabled = false; return; }
+    try {
+        await reauthenticateWithCredential(auth.currentUser, EmailAuthProvider.credential(auth.currentUser.email, cur));
+        await updatePassword(auth.currentUser, nw);
+        msg.textContent = 'Senha alterada com sucesso!';
+        msg.className = 'text-sm text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg p-3';
+        document.getElementById('passwordChangeForm').reset();
+    } catch (err) {
+        msg.textContent = err.code === 'auth/wrong-password' ? 'Senha atual incorreta.' : 'Erro ao alterar. Tente novamente.';
+        msg.className = 'text-sm text-red-500 bg-red-50 dark:bg-red-900/20 rounded-lg p-3';
+    } finally { msg.classList.remove('hidden'); if (btn) btn.disabled = false; }
+});
+
+document.querySelectorAll('.toggle-password-visibility').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const input = btn.previousElementSibling;
+        const icon = btn.querySelector('i');
+        input.type = input.type === 'password' ? 'text' : 'password';
+        icon.className = `fas fa-${input.type === 'password' ? 'eye' : 'eye-slash'} text-sm`;
+    });
+});
+
+// ── Export ───────────────────────────────────────────────
+document.getElementById('exportXlsxButton').addEventListener('click', () => {
+    const origemLabel = { estande:'Estande', palestra:'Palestra', networking:'Networking', indicacao:'Indicação', outro:'Outro' };
+    const data = allClients.map(c => ({
+        'ID': c.id, 'Data': c.createdAt?.toDate?.()?.toLocaleDateString('pt-BR') || '',
+        'Criado por': c.creatorName || '', 'Responsável': c.responsavel || '',
+        'Evento': c.evento, 'Nome': c.name, 'E-mail': c.email || '',
+        'Telefone': c.phone || '', 'Empresa': c.company || '',
+        'Origem': origemLabel[c.origemContato] || '', 'Status Reunião': getReuniaoStatus(c),
+        'Data Reunião': c.reuniaoData || '', 'Hora Reunião': c.reuniaoHora || '',
+        'Agendado por': c.reuniaoAgendadaPor || '', 'Realizado por': c.realizadaPor || '',
+        'Gerar RO': c.gerarRO ? 'Sim' : 'Não', 'Observações': c.anotacoes || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, `leads_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
+    showToast('Arquivo exportado!');
+});
+
+// ── Filter Sidebar ───────────────────────────────────────
+document.getElementById('open-filter-sidebar').addEventListener('click', () => {
+    document.getElementById('filter-sidebar').classList.add('open');
+    document.getElementById('filter-sidebar-overlay').classList.remove('hidden');
+});
+window.closeFilterSidebar = () => {
+    document.getElementById('filter-sidebar').classList.remove('open');
+    document.getElementById('filter-sidebar-overlay').classList.add('hidden');
+};
+
+// ── Analytics ─────────────────────────────────────────────
+document.getElementById('analytics-evento-filter').addEventListener('change', renderAnalytics);
+
+function renderAnalytics() {
+    const evFilter = document.getElementById('analytics-evento-filter').value;
+    const data = evFilter === 'todos' ? allClients : allClients.filter(c => c.evento === evFilter);
+
+    const total = data.length;
+    const agendadas = data.filter(c => getReuniaoStatus(c) === 'Agendada').length;
+    const realizadas = data.filter(c => getReuniaoStatus(c) === 'Realizada').length;
+    const aDefinir = data.filter(c => getReuniaoStatus(c) === 'A definir').length;
+    const taxaConv = total ? Math.round((realizadas / total) * 100) : 0;
+
+    // KPIs
+    document.getElementById('analytics-kpis').innerHTML = `
+        <div class="metric-card">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-slate-400 font-medium">Total de Leads</span>
+                <div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center"><i class="fas fa-users text-brand-600 text-xs"></i></div>
+            </div>
+            <p class="text-3xl font-bold">${total}</p>
+        </div>
+        <div class="metric-card">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-slate-400 font-medium">Reuniões Realizadas</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"><i class="fas fa-handshake text-blue-600 text-xs"></i></div>
+            </div>
+            <p class="text-3xl font-bold">${realizadas}</p>
+        </div>
+        <div class="metric-card">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-slate-400 font-medium">Reuniões Agendadas</span>
+                <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="fas fa-calendar-check text-green-600 text-xs"></i></div>
+            </div>
+            <p class="text-3xl font-bold">${agendadas}</p>
+        </div>
+        <div class="metric-card">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs text-slate-400 font-medium">Taxa de Conversão</span>
+                <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"><i class="fas fa-chart-line text-purple-600 text-xs"></i></div>
+            </div>
+            <p class="text-3xl font-bold">${taxaConv}%</p>
+        </div>`;
+
+    // Funil
+    const funilData = [
+        { label: 'Total de Leads', value: total, color: '#0070c0' },
+        { label: 'A Definir', value: aDefinir, color: '#F59E0B' },
+        { label: 'Agendadas', value: agendadas, color: '#00C896' },
+        { label: 'Realizadas', value: realizadas, color: '#3B82F6' },
+    ];
+    document.getElementById('funil-chart').innerHTML = funilData.map(item => `
+        <div>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-500">${item.label}</span>
+                <span class="font-bold">${item.value}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: ${total ? (item.value/total*100) : 0}%; background: ${item.color}"></div>
+            </div>
+        </div>`).join('');
+
+    // Por evento
+    const byEvento = {};
+    data.forEach(c => { byEvento[c.evento] = (byEvento[c.evento] || 0) + 1; });
+    const maxEv = Math.max(...Object.values(byEvento), 1);
+    document.getElementById('eventos-chart').innerHTML = Object.entries(byEvento).sort((a,b) => b[1]-a[1]).slice(0,8).map(([name, count]) => `
+        <div>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-500 truncate max-w-[70%]">${name}</span>
+                <span class="font-bold">${count}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: ${count/maxEv*100}%; background: #0070c0"></div>
+            </div>
+        </div>`).join('') || '<p class="text-sm text-slate-400">Sem dados.</p>';
+
+    // Por responsável
+    const byResp = {};
+    data.forEach(c => { const r = c.responsavel || 'Não atribuído'; byResp[r] = (byResp[r] || 0) + 1; });
+    const maxResp = Math.max(...Object.values(byResp), 1);
+    document.getElementById('responsaveis-chart').innerHTML = Object.entries(byResp).sort((a,b) => b[1]-a[1]).slice(0,8).map(([name, count]) => `
+        <div>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-500 truncate max-w-[70%]">${name}</span>
+                <span class="font-bold">${count}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: ${count/maxResp*100}%; background: #00C896"></div>
+            </div>
+        </div>`).join('') || '<p class="text-sm text-slate-400">Sem dados.</p>';
+
+    // Por origem
+    const origemLabel = { estande:'Estande', palestra:'Palestra', networking:'Networking', indicacao:'Indicação', outro:'Outro' };
+    const byOrigem = {};
+    data.forEach(c => { const o = origemLabel[c.origemContato] || 'Não informado'; byOrigem[o] = (byOrigem[o] || 0) + 1; });
+    const maxOrigem = Math.max(...Object.values(byOrigem), 1);
+    document.getElementById('origem-chart').innerHTML = Object.entries(byOrigem).sort((a,b) => b[1]-a[1]).map(([name, count]) => `
+        <div>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-slate-500">${name}</span>
+                <span class="font-bold">${count}</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-bar-fill" style="width: ${count/maxOrigem*100}%; background: #8B5CF6"></div>
+            </div>
+        </div>`).join('') || '<p class="text-sm text-slate-400">Sem dados.</p>';
+}
+
+// ── Helpers ──────────────────────────────────────────────
+function getReuniaoStatus(client, detailed = false) {
+    if (client.reuniaoRealizada) {
+        if (detailed && client.realizadaPor) return `Realizada por ${client.realizadaPor}`;
+        return 'Realizada';
+    }
+    if (client.reuniaoAgendada) {
+        if (detailed && client.reuniaoData) return `Agendada para ${new Date(client.reuniaoData+'T00:00:00').toLocaleDateString('pt-BR')}${client.reuniaoHora ? ' às '+client.reuniaoHora : ''}`;
+        return 'Agendada';
+    }
+    if (client.agendarReuniao) return 'A definir';
+    return 'Não Definido';
+}
+
+// ── Migration ────────────────────────────────────────────
+async function runMigration() {
+    if (localStorage.getItem('respMigV2')) return;
+    try {
+        const snap = await getDocs(clientesRef);
+        if (snap.empty) { localStorage.setItem('respMigV2','true'); return; }
+        const batch = writeBatch(db);
+        let n = 0;
+        snap.forEach(d => {
+            if (!d.data().responsavel && d.data().creatorName) {
+                batch.update(doc(clientesRef, d.id), { responsavel: d.data().creatorName });
+                n++;
+            }
+        });
+        if (n > 0) await batch.commit();
+        localStorage.setItem('respMigV2','true');
+    } catch (e) { console.error(e); }
+}
+
+</script>
+</body>
+</html>
