@@ -361,8 +361,7 @@ body{font-family:'DM Sans',sans-serif}
               <div class="pipeline-step" data-stage="contatado" title="Contatado"><div class="pipeline-dot"><i class="fas fa-phone text-xs"></i></div><span class="pipeline-label">Contatado</span></div>
               <div class="pipeline-step" data-stage="reuniao_agendada" title="Reunião Agendada"><div class="pipeline-dot"><i class="fas fa-calendar text-xs"></i></div><span class="pipeline-label">Agendada</span></div>
               <div class="pipeline-step" data-stage="reuniao_realizada" title="Reunião Realizada"><div class="pipeline-dot"><i class="fas fa-handshake text-xs"></i></div><span class="pipeline-label">Realizada</span></div>
-              <div class="pipeline-step" data-stage="proposta_enviada" title="Proposta Enviada"><div class="pipeline-dot"><i class="fas fa-file-alt text-xs"></i></div><span class="pipeline-label">Proposta</span></div>
-              <div class="pipeline-step" data-stage="fechado" title="Fechado"><div class="pipeline-dot"><i class="fas fa-check text-xs"></i></div><span class="pipeline-label">Fechado</span></div>
+
             </div>
             <input type="hidden" id="pipelineStageVal" value="novo">
             <p class="text-xs text-slate-400 mt-3">Clique no estágio desejado para avançar o lead no pipeline</p>
@@ -527,8 +526,7 @@ body{font-family:'DM Sans',sans-serif}
           <option value="contatado">Contatado</option>
           <option value="reuniao_agendada">Reunião Agendada</option>
           <option value="reuniao_realizada">Reunião Realizada</option>
-          <option value="proposta_enviada">Proposta Enviada</option>
-          <option value="fechado">Fechado</option>
+
         </select></div>
       <div><label class="section-label">Origem</label>
         <select id="filtroOrigem" class="form-input text-sm">
@@ -796,9 +794,9 @@ let currentViewLeadId = null;
 let timelineChart = null, origemChart = null;
 let emailjsConfig = JSON.parse(localStorage.getItem('emailjsConfig') || '{}');
 
-const PIPELINE_STAGES = ['novo','contatado','reuniao_agendada','reuniao_realizada','proposta_enviada','fechado'];
-const PIPELINE_LABELS = { novo:'Novo', contatado:'Contatado', reuniao_agendada:'R. Agendada', reuniao_realizada:'R. Realizada', proposta_enviada:'Proposta', fechado:'Fechado' };
-const PIPELINE_COLORS = { novo:'badge-gray', contatado:'badge-blue', reuniao_agendada:'badge-yellow', reuniao_realizada:'badge-green', proposta_enviada:'badge-purple', fechado:'badge-orange' };
+const PIPELINE_STAGES = ['novo','contatado','reuniao_agendada','reuniao_realizada'];
+const PIPELINE_LABELS = { novo:'Novo', contatado:'Contatado', reuniao_agendada:'R. Agendada', reuniao_realizada:'R. Realizada' };
+const PIPELINE_COLORS = { novo:'badge-gray', contatado:'badge-blue', reuniao_agendada:'badge-yellow', reuniao_realizada:'badge-green' };
 const ORIGEM_LABELS = { estande:'Estande', palestra:'Palestra', networking:'Networking', indicacao:'Indicação', outro:'Outro' };
 
 // ── PWA Manifest ─────────────────────────────────────────
@@ -1283,7 +1281,7 @@ function renderRegistrosStats(clients) {
     <div class="metric-card flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center text-brand-600"><i class="fas fa-users text-sm"></i></div><div><p class="text-2xl font-bold">${total}</p><p class="text-xs text-slate-400">Total</p></div></div>
     <div class="metric-card flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600"><i class="fas fa-calendar text-sm"></i></div><div><p class="text-2xl font-bold">${stageCount.reuniao_agendada}</p><p class="text-xs text-slate-400">R. Agendadas</p></div></div>
     <div class="metric-card flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600"><i class="fas fa-handshake text-sm"></i></div><div><p class="text-2xl font-bold">${stageCount.reuniao_realizada}</p><p class="text-xs text-slate-400">R. Realizadas</p></div></div>
-    <div class="metric-card flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600"><i class="fas fa-check text-sm"></i></div><div><p class="text-2xl font-bold">${stageCount.fechado}</p><p class="text-xs text-slate-400">Fechados</p></div></div>`;
+    <div class="metric-card flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600"><i class="fas fa-handshake text-sm"></i></div><div><p class="text-2xl font-bold">${stageCount.reuniao_realizada}</p><p class="text-xs text-slate-400">Realizadas</p></div></div>`;
 }
 
 // ── Render Table ──────────────────────────────────────────
@@ -1532,7 +1530,7 @@ async function populateViewModal(client) {
       ${PIPELINE_STAGES.map((s,i) => {
         const idx = PIPELINE_STAGES.indexOf(stage);
         const cls = i < idx ? 'done' : i === idx ? 'active' : '';
-        return `<div class="pipeline-step ${cls} flex-shrink-0" style="min-width:50px"><div class="pipeline-dot"><i class="fas ${['fa-star','fa-phone','fa-calendar','fa-handshake','fa-file-alt','fa-check'][i]} text-xs"></i></div><span class="pipeline-label">${PIPELINE_LABELS[s]}</span></div>`;
+        return `<div class="pipeline-step ${cls} flex-shrink-0" style="min-width:50px"><div class="pipeline-dot"><i class="fas ${['fa-star','fa-phone','fa-calendar','fa-handshake'][i]} text-xs"></i></div><span class="pipeline-label">${PIPELINE_LABELS[s]}</span></div>`;
       }).join('')}
     </div>
     <div class="space-y-0 text-sm">
@@ -1804,18 +1802,18 @@ function renderAnalytics() {
   const total = data.length;
   const stageCounts = {};
   PIPELINE_STAGES.forEach(s => { stageCounts[s] = data.filter(c => (c.pipelineStage||'novo') === s).length; });
-  const realizadas = stageCounts.reuniao_realizada + stageCounts.proposta_enviada + stageCounts.fechado;
+  const realizadas = stageCounts.reuniao_realizada;
   const taxaConv = total ? Math.round((realizadas/total)*100) : 0;
 
   // KPIs
   document.getElementById('analytics-kpis').innerHTML = `
     <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400 font-medium">Total de Leads</span><div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center"><i class="fas fa-users text-brand-600 text-xs"></i></div></div><p class="text-3xl font-bold">${total}</p></div>
     <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400 font-medium">R. Realizadas</span><div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"><i class="fas fa-handshake text-blue-600 text-xs"></i></div></div><p class="text-3xl font-bold">${stageCounts.reuniao_realizada}</p></div>
-    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400 font-medium">Fechados</span><div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center"><i class="fas fa-check text-orange-600 text-xs"></i></div></div><p class="text-3xl font-bold">${stageCounts.fechado}</p></div>
+    <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400 font-medium">R. Realizadas</span><div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center"><i class="fas fa-handshake text-green-600 text-xs"></i></div></div><p class="text-3xl font-bold">${stageCounts.reuniao_realizada}</p></div>
     <div class="metric-card"><div class="flex items-center justify-between mb-2"><span class="text-xs text-slate-400 font-medium">Taxa Conversão</span><div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"><i class="fas fa-chart-line text-purple-600 text-xs"></i></div></div><p class="text-3xl font-bold">${taxaConv}%</p></div>`;
 
   // Funil
-  const funilColors = { novo:'#94a3b8', contatado:'#0070c0', reuniao_agendada:'#F59E0B', reuniao_realizada:'#00C896', proposta_enviada:'#8B5CF6', fechado:'#F97316' };
+  const funilColors = { novo:'#94a3b8', contatado:'#0070c0', reuniao_agendada:'#F59E0B', reuniao_realizada:'#00C896' };
   document.getElementById('funil-chart').innerHTML = PIPELINE_STAGES.map(s => `
     <div><div class="flex justify-between text-xs mb-1"><span class="text-slate-500">${PIPELINE_LABELS[s]}</span><span class="font-bold">${stageCounts[s]}</span></div>
     <div class="progress-bar"><div class="progress-bar-fill" style="width:${total?(stageCounts[s]/total*100):0}%;background:${funilColors[s]}"></div></div></div>`).join('');
@@ -1866,19 +1864,19 @@ function renderAnalytics() {
   // Conversion table by event
   const evStats = {};
   allClients.forEach(c => {
-    if (!evStats[c.evento]) evStats[c.evento] = {total:0, agendadas:0, realizadas:0, fechadas:0};
+    if (!evStats[c.evento]) evStats[c.evento] = {total:0, agendadas:0, realizadas:0};
     evStats[c.evento].total++;
     const s = c.pipelineStage||'novo';
     if (s==='reuniao_agendada') evStats[c.evento].agendadas++;
     if (s==='reuniao_realizada') evStats[c.evento].realizadas++;
-    if (s==='fechado') evStats[c.evento].fechadas++;
+
   });
   document.getElementById('conversion-table').innerHTML = `
     <table class="data-table text-sm w-full">
-      <thead><tr><th>Evento</th><th>Total</th><th>R. Agendadas</th><th>R. Realizadas</th><th>Fechados</th><th>Taxa Conv.</th></tr></thead>
+      <thead><tr><th>Evento</th><th>Total</th><th>R. Agendadas</th><th>R. Realizadas</th><th>Taxa Conv.</th></tr></thead>
       <tbody>${Object.entries(evStats).sort((a,b)=>b[1].total-a[1].total).map(([name,s]) => `
-        <tr><td class="font-medium">${name}</td><td>${s.total}</td><td>${s.agendadas}</td><td>${s.realizadas}</td><td>${s.fechadas}</td>
-        <td><span class="badge ${(s.realizadas/s.total)>0.3?'badge-green':'badge-yellow'}">${s.total?Math.round(s.realizadas/s.total*100):0}%</span></td></tr>`).join('')}
+        <tr><td class="font-medium">${name}</td><td>${s.total}</td><td>${s.agendadas}</td><td>${s.realizadas}</td>
+        <td><span class="badge ${s.total&&(s.realizadas/s.total)>0.3?'badge-green':'badge-yellow'}">${s.total?Math.round(s.realizadas/s.total*100):0}%</span></td></tr>`).join('')}
       </tbody>
     </table>`;
 }
@@ -1899,11 +1897,11 @@ document.getElementById('exportPdfButton').addEventListener('click', () => {
 
   const total = data.length;
   const realizadas = data.filter(c=>(c.pipelineStage||'novo')==='reuniao_realizada').length;
-  const fechados = data.filter(c=>(c.pipelineStage||'novo')==='fechado').length;
+  const fechados = data.filter(c=>(c.pipelineStage||'novo')==='reuniao_realizada').length;
   pdf.setFontSize(12); pdf.setTextColor(30);
   pdf.text(`Total de Leads: ${total}`, 20, y); y+=6;
   pdf.text(`Reuniões Realizadas: ${realizadas}`, 20, y); y+=6;
-  pdf.text(`Fechados: ${fechados}`, 20, y); y+=6;
+  pdf.text(`Reuniões Realizadas: ${fechados}`, 20, y); y+=6;
   pdf.text(`Taxa de Conversão: ${total?Math.round(realizadas/total*100):0}%`, 20, y); y+=10;
 
   pdf.setFontSize(10); pdf.setTextColor(100); pdf.text('Pipeline:', 20, y); y+=5;
@@ -2264,6 +2262,15 @@ const PORTFOLIO = [
   { pilar:'Proteção', solucao:'Endpoint Security (EDR/XDR) - SOPHOS', fabricante:'SOPHOS' },
   { pilar:'Proteção', solucao:'SASE - ZTNA, SWG - CLOUDFLARE', fabricante:'CLOUDFLARE' },
   { pilar:'Proteção', solucao:'Gestão de Vulnerabilidades - QUALYS', fabricante:'QUALYS' },
+  // NOVOS ITENS
+  { pilar:'Conformidade', solucao:'Gestão de Produtividade - Teramind', fabricante:'TERAMIND' },
+  { pilar:'Conformidade', solucao:'vDPO', fabricante:'AUTORITAS' },
+  { pilar:'Disponibilidade', solucao:'Desktop as a Service (VDI) - Trisky Desktop', fabricante:'TRIPLA' },
+  { pilar:'Disponibilidade', solucao:'Segurança Eletrônica - DAHUA', fabricante:'DAHUA' },
+  { pilar:'Disponibilidade', solucao:'Redes Cabeadas - HUAWEI', fabricante:'HUAWEI' },
+  { pilar:'Proteção', solucao:'Microsegmentação de Rede - ILLUMIO', fabricante:'ILLUMIO' },
+  { pilar:'Proteção', solucao:'SOC/MDR - CyberWatch', fabricante:'TRIPLA' },
+  { pilar:'Proteção', solucao:'Firewall de Aplicações (WAF) - CLOUDFLARE', fabricante:'CLOUDFLARE' },
 ];
 
 const PILAR_COLORS = {
