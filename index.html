@@ -2620,10 +2620,18 @@ document.getElementById('brindeForm')?.addEventListener('submit', async e => {
   const quantidade = parseInt(document.getElementById('brindeQuantidade').value);
   if (!nome || !evento || isNaN(quantidade)) { showToast('Preencha todos os campos.', 'warn'); return; }
   try {
+    if (!brindesRef) throw new Error('brindesRef não inicializado. Faça login novamente.');
     await addDoc(brindesRef, { nome, evento, quantidade, entregues: 0, createdAt: new Date(), createdBy: currentUserId });
     document.getElementById('brindeForm').reset();
+    populateBrindeEventoSelect();
     showToast('Brinde cadastrado!');
-  } catch(err) { showToast('Erro ao cadastrar.', 'error'); console.error(err); }
+  } catch(err) {
+    console.error('Erro ao cadastrar brinde:', err.code, err.message);
+    const msg = err.code === 'permission-denied'
+      ? 'Permissão negada. Atualize as regras do Firestore (veja instruções abaixo).'
+      : err.message || 'Erro ao cadastrar.';
+    showToast(msg, 'error', 6000);
+  }
 });
 
 // Admin: Delete brinde
