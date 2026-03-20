@@ -385,6 +385,34 @@ body{font-family:'DM Sans',sans-serif}
           </div>
           <div class="card"><p class="section-label">Observações</p>
             <textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea></div>
+
+          <!-- Brinde -->
+          <div class="card space-y-4">
+            <p class="section-label">🎁 Brinde</p>
+            <div>
+              <label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Entregou brinde para este lead?</label>
+              <div class="choice-group" data-field="entregouBrinde">
+                <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                <button type="button" class="choice-btn" data-value="nao">Não</button>
+              </div>
+              <input type="hidden" id="entregouBrindeVal">
+            </div>
+            <div id="brindeSelectionContainer" class="hidden space-y-3">
+              <div>
+                <label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5 block">Qual brinde?</label>
+                <select id="brindeSelector" class="form-input text-sm">
+                  <option value="">Selecione um brinde...</option>
+                  <option value="__outro__">✏️ Outro (digitar manualmente)</option>
+                </select>
+              </div>
+              <div id="brindeOutroContainer" class="hidden">
+                <label class="text-sm font-medium text-slate-600 dark:text-slate-300 mb-1.5 block">Descreva o brinde</label>
+                <input type="text" id="brindeOutroInput" class="form-input" placeholder="Ex: Caneta personalizada, Kit exclusivo...">
+              </div>
+              <div id="brinde-stock-info" class="hidden text-xs rounded-lg px-3 py-2"></div>
+            </div>
+          </div>
+
           <button type="submit" id="saveButton" class="btn-primary w-full justify-center text-base py-3">
             <i class="fas fa-save button-icon"></i><span class="button-text">Salvar Lead</span><span class="spinner hidden"></span>
           </button>
@@ -455,6 +483,32 @@ body{font-family:'DM Sans',sans-serif}
         <h3 class="font-semibold text-sm mb-4 text-slate-600 dark:text-slate-300">Taxa de Conversão por Evento</h3>
         <div id="conversion-table" class="overflow-x-auto"></div>
       </div>
+
+      <!-- Brindes Analytics -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-1 text-slate-600 dark:text-slate-300 flex items-center gap-2">
+            <i class="fas fa-gift text-brand-500"></i> Brindes por Evento
+          </h3>
+          <p class="text-xs text-slate-400 mb-4">Estoque, entregas e saldo por evento</p>
+          <div id="brindes-evento-chart" class="space-y-4"></div>
+        </div>
+        <div class="card">
+          <h3 class="font-semibold text-sm mb-1 text-slate-600 dark:text-slate-300 flex items-center gap-2">
+            <i class="fas fa-box-open text-brand-500"></i> Ranking de Brindes Entregues
+          </h3>
+          <p class="text-xs text-slate-400 mb-4">Quais brindes foram mais distribuídos</p>
+          <div id="brindes-ranking-chart" class="space-y-3"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="font-semibold text-sm mb-1 text-slate-600 dark:text-slate-300 flex items-center gap-2">
+          <i class="fas fa-table text-brand-500"></i> Detalhamento de Brindes
+        </h3>
+        <p class="text-xs text-slate-400 mb-4">Resumo completo do estoque e distribuição</p>
+        <div id="brindes-detail-table" class="overflow-x-auto"></div>
+      </div>
     </div>
 
     <!-- TAB: ADMIN -->
@@ -471,6 +525,56 @@ body{font-family:'DM Sans',sans-serif}
           </form>
           <ul id="eventList" class="space-y-2 text-sm"></ul>
         </div>
+        <!-- Brindes -->
+        <div class="card">
+          <h3 class="font-semibold text-base mb-4 flex items-center gap-2"><i class="fas fa-gift text-brand-500"></i> Gestão de Brindes</h3>
+          <form id="brindeForm" class="space-y-3 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-semibold text-slate-500 mb-1 block">Nome do brinde *</label>
+                <input type="text" id="brindeName" class="form-input" placeholder="Ex: Camiseta, Caneca, Kit..." required>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-slate-500 mb-1 block">Evento *</label>
+                <select id="brindeEventoSelect" class="form-input" required>
+                  <option value="">Selecione o evento</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 mb-1 block">Quantidade disponível *</label>
+              <input type="number" id="brindeQuantidade" class="form-input" placeholder="Ex: 100" min="0" required>
+            </div>
+            <button type="submit" class="btn-primary text-sm"><i class="fas fa-plus"></i> Adicionar Brinde</button>
+          </form>
+          <div id="brindeList" class="space-y-2"></div>
+        </div>
+
+        <!-- Brindes -->
+        <div class="card">
+          <h3 class="font-semibold text-base mb-4 flex items-center gap-2"><i class="fas fa-gift text-brand-500"></i> Gestão de Brindes</h3>
+          <form id="brindeForm" class="space-y-3 mb-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="text-xs font-semibold text-slate-500 mb-1 block">Nome do brinde *</label>
+                <input type="text" id="brindeName" class="form-input" placeholder="Ex: Camiseta, Caneca, Kit..." required>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-slate-500 mb-1 block">Evento *</label>
+                <select id="brindeEventoSelect" class="form-input" required>
+                  <option value="">Selecione o evento</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-slate-500 mb-1 block">Quantidade disponível *</label>
+              <input type="number" id="brindeQuantidade" class="form-input" placeholder="Ex: 100" min="0" required>
+            </div>
+            <button type="submit" class="btn-primary text-sm"><i class="fas fa-plus"></i> Adicionar Brinde</button>
+          </form>
+          <div id="brindeList" class="space-y-2"></div>
+        </div>
+
         <!-- EmailJS config -->
         <div class="card">
           <h3 class="font-semibold text-base mb-1">Notificações por E-mail</h3>
@@ -778,9 +882,9 @@ const db = getFirestore(app);
 
 // ── State ────────────────────────────────────────────────
 let currentUserId = null, currentUserRole = 'comum', currentUserData = {};
-let clientesRef, eventosRef, usersRef, notificacoesRef;
-let unsubClientes, unsubEventos, unsubUsers, unsubNotifs;
-let allClients = [], allEvents = [], allUsers = [], allNotifs = [];
+let clientesRef, eventosRef, usersRef, notificacoesRef, brindesRef;
+let unsubClientes, unsubEventos, unsubUsers, unsubNotifs, unsubBrindes;
+let allClients = [], allEvents = [], allUsers = [], allNotifs = [], allBrindes = [];
 let itemToDelete = { id: null, type: null };
 let clientToEditId = null, userToEditId = null;
 let isLoginMode = true;
@@ -864,10 +968,14 @@ document.querySelectorAll('[data-field]').forEach(group => {
     btn.addEventListener('click', () => {
       group.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      const map = { responsavelConta:'responsavelContaVal', contatoDecisor:'contatoDecisorVal', conversaDemanda:'conversaDemandaVal', pedirRO:'pedirROVal', proximoPasso:'proximoPassoVal' };
+      const map = { responsavelConta:'responsavelContaVal', contatoDecisor:'contatoDecisorVal', conversaDemanda:'conversaDemandaVal', pedirRO:'pedirROVal', proximoPasso:'proximoPassoVal', entregouBrinde:'entregouBrindeVal' };
       const h = document.getElementById(map[group.dataset.field]);
       if (h) h.value = btn.dataset.value;
       if (group.dataset.field === 'conversaDemanda') document.getElementById('demandasContainer').classList.toggle('hidden', btn.dataset.value !== 'sim');
+      if (group.dataset.field === 'entregouBrinde') {
+        document.getElementById('brindeSelectionContainer').classList.toggle('hidden', btn.dataset.value !== 'sim');
+        if (btn.dataset.value === 'sim') populateBrindeSelector();
+      }
       if (group.dataset.field === 'proximoPasso') {
         document.getElementById('dataHoraAgendadaContainer').classList.toggle('hidden', btn.dataset.value !== 'sdrAgenda');
         document.getElementById('sdrSelectorContainer').classList.toggle('hidden', btn.dataset.value !== 'sdrAgenda');
@@ -998,6 +1106,7 @@ onAuthStateChanged(auth, async user => {
         document.getElementById('app-container').classList.remove('hidden');
         clientesRef = collection(db,'clientes'); eventosRef = collection(db,'eventos'); usersRef = collection(db,'users');
         notificacoesRef = collection(db,`notificacoes/${currentUserId}/items`);
+        brindesRef = collection(db,'brindes');
         updateUIVisibility(); setupListeners(); loadEmailJSConfig();
         if (navigator.onLine) syncOfflineQueue();
         checkTomorrowMeetings();
@@ -1008,7 +1117,7 @@ onAuthStateChanged(auth, async user => {
     currentUserId = null;
     document.getElementById('auth-wrapper').classList.remove('hidden');
     document.getElementById('app-container').classList.add('hidden');
-    [unsubClientes,unsubEventos,unsubUsers,unsubNotifs].forEach(u => u && u());
+    [unsubClientes,unsubEventos,unsubUsers,unsubNotifs,unsubBrindes].forEach(u => u && u());
   }
 });
 
@@ -1067,6 +1176,14 @@ function setupListeners() {
   unsubNotifs = onSnapshot(query(notificacoesRef, orderBy('createdAt','desc')), snap => {
     allNotifs = snap.docs.map(d => ({id:d.id,...d.data()}));
     renderNotifications();
+  });
+
+  if (unsubBrindes) unsubBrindes();
+  unsubBrindes = onSnapshot(query(brindesRef), snap => {
+    allBrindes = snap.docs.map(d => ({id:d.id,...d.data()}));
+    renderBrindeList();
+    populateBrindeSelector();
+    if (!document.getElementById('tab-analytics-content').classList.contains('hidden')) renderAnalytics();
   });
 }
 
@@ -1478,12 +1595,14 @@ document.getElementById('clientForm').addEventListener('submit', async e => {
     reuniaoAgendadaPor: proximoPasso==='sdrAgenda'?document.getElementById('sdrSelector').value:null,
     pipelineStage: document.getElementById('pipelineStageVal').value || 'novo',
     createdAt: new Date(), createdBy: currentUserId, creatorName, responsavel: creatorName,
-    reuniaoRealizada: false, realizadaPor: null
+    reuniaoRealizada: false, realizadaPor: null,
+    ...getBrindeData()
   };
   try {
     if (navigator.onLine) {
       const docRef = await addDoc(clientesRef, lead);
       await logHistory(docRef.id, 'Lead criado', `Por ${creatorName}`);
+      if (lead.brindeId) await decrementBrindeStock(lead.brindeId);
       // Notify SDR if assigned
       if (proximoPasso === 'sdrAgenda' && lead.reuniaoAgendadaPor) {
         const sdrUser = allUsers.find(u => `${u.nome} ${u.sobrenome}` === lead.reuniaoAgendadaPor);
@@ -1509,6 +1628,7 @@ function resetForm() {
   document.querySelectorAll('#pipeline-new .pipeline-step').forEach((s,i) => { s.classList.remove('active','done'); if (i===0) s.classList.add('active'); });
   ['demandasContainer','dataHoraAgendadaContainer','sdrSelectorContainer'].forEach(id => document.getElementById(id).classList.add('hidden'));
   resetDemandaSelector();
+  resetBrindeSection();
   ['duplicate-email-warning','duplicate-phone-warning'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('email-validation-icon').classList.add('hidden');
 }
@@ -1563,6 +1683,7 @@ async function populateViewModal(client) {
       <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Pedir RO</span><span class="font-medium">${client.pedirRO?'Sim':'Não'}</span></div>
       ${client.reuniaoAgendadaPor?`<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Agendado por</span><span class="font-medium">${client.reuniaoAgendadaPor}</span></div>`:''}
       ${client.realizadaPor?`<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Realizado por</span><span class="font-medium">${client.realizadaPor}</span></div>`:''}
+      ${client.entregouBrinde?`<div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">🎁 Brinde entregue</span><span class="font-medium">${client.brindeNome||'Sim'}</span></div>`:''}
       <div class="flex justify-between py-2 border-b border-slate-100 dark:border-slate-700"><span class="text-slate-400">Criado por</span><span class="font-medium">${client.creatorName||'—'}</span></div>
       ${createdInfo}
       ${client.anotacoes?`<div class="pt-3"><p class="text-slate-400 text-xs mb-1">Observações</p><p class="text-sm whitespace-pre-wrap bg-slate-50 dark:bg-slate-800 rounded-lg p-3">${client.anotacoes}</p></div>`:''}
@@ -1644,6 +1765,7 @@ function populateEditModal(client) {
           <select id="edit_realizadaPor" class="form-input text-sm"><option value="">Selecione</option>${vendedores.map(v=>`<option value="${v.nome} ${v.sobrenome}"${`${v.nome} ${v.sobrenome}`===client.realizadaPor?' selected':''}>${v.nome} ${v.sobrenome}</option>`).join('')}</select>
         </div>
       </div>
+      ${client.entregouBrinde?`<div class="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-center gap-2 text-sm"><i class="fas fa-gift text-green-500"></i><span class="font-medium">Brinde entregue:</span> ${client.brindeNome||'Sim'}</span></div>`:''}
       <div><label class="text-xs text-slate-500 mb-1 block">Observações</label><textarea id="edit_anotacoes" class="form-input" rows="3">${client.anotacoes||''}</textarea></div>
     </div>
     <div class="flex gap-3 justify-end mt-5 pt-4 border-t border-slate-100 dark:border-slate-700">
@@ -1878,6 +2000,176 @@ function renderAnalytics() {
         <tr><td class="font-medium">${name}</td><td>${s.total}</td><td>${s.agendadas}</td><td>${s.realizadas}</td>
         <td><span class="badge ${s.total&&(s.realizadas/s.total)>0.3?'badge-green':'badge-yellow'}">${s.total?Math.round(s.realizadas/s.total*100):0}%</span></td></tr>`).join('')}
       </tbody>
+    </table>`;
+
+  // ── Brindes Analytics ─────────────────────────────────
+  renderBrindesAnalytics(evFilter);
+}
+
+function renderBrindesAnalytics(evFilter) {
+  // Filter brindes by selected event
+  const brindesFiltrados = evFilter === 'todos'
+    ? allBrindes
+    : allBrindes.filter(b => b.evento === evFilter);
+
+  // Filter leads by event to count per-brinde deliveries
+  const leadsFiltrados = evFilter === 'todos'
+    ? allClients
+    : allClients.filter(c => c.evento === evFilter);
+
+  const totalBrindesEntregues = leadsFiltrados.filter(c => c.entregouBrinde).length;
+  const totalLeads = leadsFiltrados.length;
+  const taxaBrinde = totalLeads > 0 ? Math.round(totalBrindesEntregues / totalLeads * 100) : 0;
+
+  // ── 1. Brindes por Evento ──────────────────────────────
+  const brindesEventoEl = document.getElementById('brindes-evento-chart');
+  if (!brindesEventoEl) return;
+
+  if (!allBrindes.length) {
+    brindesEventoEl.innerHTML = '<p class="text-sm text-slate-400">Nenhum brinde cadastrado.</p>';
+    document.getElementById('brindes-ranking-chart').innerHTML = '<p class="text-sm text-slate-400">Nenhum dado disponível.</p>';
+    document.getElementById('brindes-detail-table').innerHTML = '<p class="text-sm text-slate-400">Nenhum dado disponível.</p>';
+    return;
+  }
+
+  // Group brindes by evento
+  const byEvento = {};
+  brindesFiltrados.forEach(b => {
+    if (!byEvento[b.evento]) byEvento[b.evento] = [];
+    byEvento[b.evento].push(b);
+  });
+
+  if (!Object.keys(byEvento).length) {
+    brindesEventoEl.innerHTML = '<p class="text-sm text-slate-400">Nenhum brinde para o filtro selecionado.</p>';
+  } else {
+    brindesEventoEl.innerHTML = Object.entries(byEvento).map(([evento, brindes]) => {
+      const totalEv = brindes.reduce((s, b) => s + (b.quantidade || 0), 0);
+      const entreguesEv = brindes.reduce((s, b) => s + (b.entregues || 0), 0);
+      const restanteEv = totalEv - entreguesEv;
+      const pctEv = totalEv > 0 ? Math.round(entreguesEv / totalEv * 100) : 0;
+      return `
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold truncate max-w-[55%]">${evento}</span>
+            <div class="flex items-center gap-3 text-xs text-slate-400">
+              <span class="text-green-600 font-semibold">${entreguesEv} entregues</span>
+              <span>·</span>
+              <span class="${restanteEv === 0 ? 'text-red-500' : 'text-slate-500'}">${restanteEv} restantes</span>
+            </div>
+          </div>
+          <div class="progress-bar mb-3">
+            <div class="progress-bar-fill" style="width:${pctEv}%; background: ${pctEv >= 80 ? '#EF4444' : pctEv >= 50 ? '#F59E0B' : '#00C896'}"></div>
+          </div>
+          <div class="space-y-1.5 pl-3 border-l-2 border-slate-100 dark:border-slate-700">
+            ${brindes.map(b => {
+              const restB = Math.max(0, (b.quantidade||0) - (b.entregues||0));
+              const pctB = b.quantidade > 0 ? Math.round((b.entregues||0) / b.quantidade * 100) : 0;
+              return `<div class="flex items-center justify-between text-xs">
+                <span class="text-slate-600 dark:text-slate-300 truncate max-w-[55%]">${b.nome}</span>
+                <div class="flex items-center gap-2">
+                  <div class="w-16 progress-bar" style="height:4px">
+                    <div class="progress-bar-fill" style="width:${pctB}%; background: ${restB===0?'#EF4444':restB<=(b.quantidade||0)*0.2?'#F59E0B':'#0070c0'}; height:100%"></div>
+                  </div>
+                  <span class="font-mono text-slate-400 w-16 text-right">${b.entregues||0}/${b.quantidade||0}</span>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }).join('<hr class="border-slate-100 dark:border-slate-700 my-3">');
+  }
+
+  // ── 2. Ranking de brindes entregues ───────────────────
+  // Count deliveries per brinde name from leads
+  const byNome = {};
+  leadsFiltrados.filter(c => c.entregouBrinde && c.brindeNome).forEach(c => {
+    byNome[c.brindeNome] = (byNome[c.brindeNome] || 0) + 1;
+  });
+  const maxNome = Math.max(...Object.values(byNome), 1);
+  const rankingEl = document.getElementById('brindes-ranking-chart');
+
+  if (!Object.keys(byNome).length) {
+    rankingEl.innerHTML = '<p class="text-sm text-slate-400">Nenhum brinde registrado em leads ainda.</p>';
+  } else {
+    rankingEl.innerHTML = Object.entries(byNome)
+      .sort((a, b) => b[1] - a[1])
+      .map(([nome, count], i) => `
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full flex items-center justify-center text-white font-bold text-xs flex-shrink-0" style="background:${['#0070c0','#00C896','#F59E0B','#8B5CF6','#EF4444'][i%5]}">${i+1}</span>
+              <span class="text-slate-600 dark:text-slate-300 truncate max-w-[180px]">${nome}</span>
+            </span>
+            <span class="font-bold ml-2">${count} entregues</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-bar-fill" style="width:${count/maxNome*100}%; background:${['#0070c0','#00C896','#F59E0B','#8B5CF6','#EF4444'][i%5]}"></div>
+          </div>
+        </div>`).join('');
+  }
+
+  // ── 3. Tabela detalhada ────────────────────────────────
+  const detailEl = document.getElementById('brindes-detail-table');
+  if (!brindesFiltrados.length) {
+    detailEl.innerHTML = '<p class="text-sm text-slate-400">Nenhum brinde para o filtro selecionado.</p>';
+    return;
+  }
+
+  // Enrich with actual lead delivery counts
+  const enriched = brindesFiltrados.map(b => {
+    const deliveredFromLeads = leadsFiltrados.filter(c => c.brindeNome === b.nome && c.entregouBrinde).length;
+    const restante = Math.max(0, (b.quantidade||0) - (b.entregues||0));
+    const pct = b.quantidade > 0 ? Math.round((b.entregues||0) / b.quantidade * 100) : 0;
+    const statusBadge = restante === 0
+      ? '<span class="badge badge-red" style="font-size:10px">Esgotado</span>'
+      : restante <= (b.quantidade||0) * 0.2
+        ? '<span class="badge badge-yellow" style="font-size:10px">Baixo</span>'
+        : '<span class="badge badge-green" style="font-size:10px">OK</span>';
+    return { ...b, restante, pct, statusBadge, deliveredFromLeads };
+  });
+
+  detailEl.innerHTML = `
+    <table class="data-table text-sm w-full">
+      <thead>
+        <tr>
+          <th>Brinde</th>
+          <th>Evento</th>
+          <th>Total</th>
+          <th>Entregues</th>
+          <th>Restante</th>
+          <th>% Usado</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${enriched.sort((a,b) => b.pct - a.pct).map(b => `
+          <tr>
+            <td class="font-medium">${b.nome}</td>
+            <td class="text-slate-500">${b.evento||'—'}</td>
+            <td class="text-center font-mono">${b.quantidade||0}</td>
+            <td class="text-center font-mono text-green-600 font-semibold">${b.entregues||0}</td>
+            <td class="text-center font-mono ${b.restante===0?'text-red-500':b.restante<=(b.quantidade||0)*0.2?'text-yellow-500':'text-slate-500'}">${b.restante}</td>
+            <td>
+              <div class="flex items-center gap-2">
+                <div class="progress-bar flex-1" style="max-width:60px">
+                  <div class="progress-bar-fill" style="width:${b.pct}%; background:${b.pct>=80?'#EF4444':b.pct>=50?'#F59E0B':'#00C896'}"></div>
+                </div>
+                <span class="text-xs font-mono">${b.pct}%</span>
+              </div>
+            </td>
+            <td>${b.statusBadge}</td>
+          </tr>`).join('')}
+      </tbody>
+      <tfoot>
+        <tr class="border-t-2 border-slate-200 dark:border-slate-600">
+          <td class="font-bold pt-2">Total</td>
+          <td></td>
+          <td class="text-center font-bold font-mono pt-2">${enriched.reduce((s,b)=>s+(b.quantidade||0),0)}</td>
+          <td class="text-center font-bold font-mono text-green-600 pt-2">${enriched.reduce((s,b)=>s+(b.entregues||0),0)}</td>
+          <td class="text-center font-bold font-mono pt-2">${enriched.reduce((s,b)=>s+b.restante,0)}</td>
+          <td colspan="2" class="pt-2 text-xs text-slate-400">${totalBrindesEntregues} leads receberam brinde (${taxaBrinde}% do total)</td>
+        </tr>
+      </tfoot>
     </table>`;
 }
 
@@ -2219,6 +2511,178 @@ document.getElementById('import-confirm-btn').addEventListener('click', async()=
 
 // ── Init ──────────────────────────────────────────────────
 renderSavedFilters();
+
+// ── Brindes Logic ────────────────────────────────────────
+// Populate evento select in brinde form (admin)
+function populateBrindeEventoSelect() {
+  const sel = document.getElementById('brindeEventoSelect');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecione o evento</option>';
+  allEvents.forEach(ev => { sel.innerHTML += `<option value="${ev.name}">${ev.name}</option>`; });
+  if (cur) sel.value = cur;
+}
+
+// Render brinde list in admin
+function renderBrindeList() {
+  const list = document.getElementById('brindeList');
+  if (!list) return;
+  populateBrindeEventoSelect();
+
+  if (!allBrindes.length) {
+    list.innerHTML = '<p class="text-sm text-slate-400">Nenhum brinde cadastrado.</p>';
+    return;
+  }
+
+  // Group by evento
+  const byEvento = {};
+  allBrindes.forEach(b => {
+    const ev = b.evento || 'Sem evento';
+    if (!byEvento[ev]) byEvento[ev] = [];
+    byEvento[ev].push(b);
+  });
+
+  list.innerHTML = Object.entries(byEvento).map(([evento, brindes]) => `
+    <div class="mb-4">
+      <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">${evento}</p>
+      <div class="space-y-2">
+        ${brindes.map(b => {
+          const entregues = b.entregues || 0;
+          const total = b.quantidade || 0;
+          const restante = Math.max(0, total - entregues);
+          const pct = total > 0 ? Math.round(entregues / total * 100) : 0;
+          const statusColor = restante === 0 ? 'text-red-500' : restante <= total * 0.2 ? 'text-yellow-500' : 'text-green-500';
+          return `
+          <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+            <div class="w-9 h-9 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-gift text-brand-600 text-sm"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-sm">${b.nome}</p>
+              <div class="flex items-center gap-3 mt-1">
+                <div class="progress-bar flex-1" style="max-width:120px">
+                  <div class="progress-bar-fill" style="width:${pct}%;background:${restante===0?'#EF4444':restante<=total*0.2?'#F59E0B':'#00C896'}"></div>
+                </div>
+                <span class="text-xs ${statusColor} font-semibold">${restante}/${total} restantes</span>
+              </div>
+            </div>
+            <button class="delete-brinde-btn w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-slate-400 hover:text-red-500 flex-shrink-0" data-id="${b.id}">
+              <i class="fas fa-trash text-xs"></i>
+            </button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+// Populate brinde selector in the lead form
+function populateBrindeSelector() {
+  const sel = document.getElementById('brindeSelector');
+  if (!sel) return;
+
+  const currentEvento = document.getElementById('evento')?.value;
+  const filteredBrindes = allBrindes.filter(b => !currentEvento || b.evento === currentEvento);
+
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Selecione um brinde...</option>';
+  filteredBrindes.forEach(b => {
+    const restante = Math.max(0, (b.quantidade || 0) - (b.entregues || 0));
+    const label = restante === 0 ? `${b.nome} — ESGOTADO` : `${b.nome} (${restante} disponíveis)`;
+    sel.innerHTML += `<option value="${b.id}" data-nome="${b.nome}" ${restante === 0 ? 'disabled' : ''}>${label}</option>`;
+  });
+  sel.innerHTML += '<option value="__outro__">✏️ Outro (digitar manualmente)</option>';
+  if (cur) sel.value = cur;
+}
+
+// Show/hide "outro" input
+document.getElementById('brindeSelector')?.addEventListener('change', e => {
+  const outroContainer = document.getElementById('brindeOutroContainer');
+  const stockInfo = document.getElementById('brinde-stock-info');
+  outroContainer.classList.toggle('hidden', e.target.value !== '__outro__');
+
+  if (e.target.value && e.target.value !== '__outro__') {
+    const brinde = allBrindes.find(b => b.id === e.target.value);
+    if (brinde) {
+      const restante = Math.max(0, (brinde.quantidade || 0) - (brinde.entregues || 0));
+      const pct = brinde.quantidade > 0 ? Math.round(restante / brinde.quantidade * 100) : 0;
+      const color = restante === 0 ? 'bg-red-50 dark:bg-red-900/20 text-red-600 border border-red-200 dark:border-red-800'
+                  : restante <= brinde.quantidade * 0.2 ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 border border-yellow-200 dark:border-yellow-800'
+                  : 'bg-green-50 dark:bg-green-900/20 text-green-700 border border-green-200 dark:border-green-800';
+      const icon = restante === 0 ? 'fa-times-circle' : restante <= brinde.quantidade * 0.2 ? 'fa-exclamation-triangle' : 'fa-check-circle';
+      stockInfo.className = `text-xs rounded-lg px-3 py-2 ${color}`;
+      stockInfo.innerHTML = `<i class="fas ${icon} mr-1"></i>${restante} de ${brinde.quantidade} unidades disponíveis (${pct}% restante)`;
+      stockInfo.classList.remove('hidden');
+    }
+  } else {
+    stockInfo.classList.add('hidden');
+  }
+});
+
+// Also repopulate when evento changes
+document.getElementById('evento')?.addEventListener('change', () => {
+  if (document.getElementById('entregouBrindeVal').value === 'sim') populateBrindeSelector();
+});
+
+// Admin: Add brinde form
+document.getElementById('brindeForm')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const nome = document.getElementById('brindeName').value.trim();
+  const evento = document.getElementById('brindeEventoSelect').value;
+  const quantidade = parseInt(document.getElementById('brindeQuantidade').value);
+  if (!nome || !evento || isNaN(quantidade)) { showToast('Preencha todos os campos.', 'warn'); return; }
+  try {
+    await addDoc(brindesRef, { nome, evento, quantidade, entregues: 0, createdAt: new Date(), createdBy: currentUserId });
+    document.getElementById('brindeForm').reset();
+    showToast('Brinde cadastrado!');
+  } catch(err) { showToast('Erro ao cadastrar.', 'error'); console.error(err); }
+});
+
+// Admin: Delete brinde
+document.getElementById('brindeList')?.addEventListener('click', async e => {
+  const btn = e.target.closest('.delete-brinde-btn');
+  if (!btn) return;
+  if (!confirm('Excluir este brinde?')) return;
+  try { await deleteDoc(doc(brindesRef, btn.dataset.id)); showToast('Brinde removido.'); }
+  catch(err) { showToast('Erro ao remover.', 'error'); }
+});
+
+// Helper: get brinde data from form
+function getBrindeData() {
+  const entregou = document.getElementById('entregouBrindeVal').value === 'sim';
+  if (!entregou) return { entregouBrinde: false, brindeId: null, brindeNome: null };
+  const sel = document.getElementById('brindeSelector');
+  const isOutro = sel.value === '__outro__';
+  const brindeId = isOutro ? null : sel.value || null;
+  const brindeNome = isOutro
+    ? (document.getElementById('brindeOutroInput').value.trim() || 'Outro')
+    : sel.options[sel.selectedIndex]?.dataset?.nome || null;
+  return { entregouBrinde: true, brindeId, brindeNome };
+}
+
+// Helper: decrement brinde stock after saving a lead
+async function decrementBrindeStock(brindeId) {
+  if (!brindeId) return;
+  try {
+    const brindeDoc = await getDoc(doc(brindesRef, brindeId));
+    if (brindeDoc.exists()) {
+      const current = brindeDoc.data().entregues || 0;
+      await updateDoc(doc(brindesRef, brindeId), { entregues: current + 1 });
+    }
+  } catch(err) { console.error('Erro ao decrementar estoque:', err); }
+}
+
+// Reset brinde section
+function resetBrindeSection() {
+  document.getElementById('entregouBrindeVal').value = '';
+  document.getElementById('brindeSelectionContainer').classList.add('hidden');
+  document.getElementById('brindeOutroContainer').classList.add('hidden');
+  document.getElementById('brinde-stock-info').classList.add('hidden');
+  document.querySelector('[data-field="entregouBrinde"]')?.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+  const sel = document.getElementById('brindeSelector');
+  if (sel) sel.value = '';
+  const outro = document.getElementById('brindeOutroInput');
+  if (outro) outro.value = '';
+}
 
 // ── Portfolio / Demandas Selector ────────────────────────
 const PORTFOLIO = [
