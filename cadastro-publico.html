@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#0070c0">
+<title>Fale com a gente</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --brand:#0070c0;--brand-dark:#005a9c;--brand-light:#3b82f6;--brand-dim:#eff6ff;
+  --green:#059669;--green-dim:#ecfdf5;
+  --red:#dc2626;--red-dim:#fef2f2;
+  --amber:#d97706;
+  --bg:#f0f4f8;--surface:#fff;--border:#e2e8f0;
+  --text:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+  --radius:12px;--radius-lg:16px;--radius-xl:20px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Loading */
+.loading-overlay{position:fixed;inset:0;background:#fff;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:100}
+.load-logo{width:52px;height:52px;border-radius:16px;background:linear-gradient(135deg,#0070c0,#3b82f6);display:flex;align-items:center;justify-content:center;animation:lp 1.5s ease-in-out infinite}
+@keyframes lp{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.load-logo svg{width:26px;height:26px;fill:white}
+.load-text{font-size:13px;color:var(--text-3);font-weight:500}
+
+/* Hero */
+.hero{background:linear-gradient(150deg,#005a9c 0%,#0070c0 40%,#1d4ed8 100%);padding:44px 24px 64px;text-align:center;position:relative;overflow:hidden}
+.hero-pattern{position:absolute;inset:0;opacity:.04;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:28px 28px}
+.hero-badge{position:relative;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);border-radius:99px;padding:6px 16px;font-size:12px;font-weight:700;color:rgba(255,255,255,.9);margin-bottom:22px;backdrop-filter:blur(10px)}
+.hero-dot{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;animation:blink 2s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero-event-label{position:relative;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:10px;display:none}
+.hero-title{position:relative;font-size:34px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:14px;letter-spacing:-.02em}
+.hero-title em{font-style:normal;background:linear-gradient(90deg,#7dd3fc,#bae6fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{position:relative;font-size:15px;color:rgba(255,255,255,.72);line-height:1.65;max-width:380px;margin:0 auto 30px}
+.hero-perks{position:relative;display:flex;justify-content:center;gap:22px;flex-wrap:wrap}
+.perk{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:rgba(255,255,255,.75)}
+.perk-icon{width:18px;height:18px;border-radius:5px;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:10px}
+
+/* Wave */
+.wave-wrap{background:linear-gradient(150deg,#005a9c 0%,#0070c0 40%,#1d4ed8 100%)}
+
+/* Container */
+.container{max-width:500px;margin:-28px auto 0;padding:0 16px 52px;position:relative;z-index:1}
+
+/* Card */
+.card{background:var(--surface);border-radius:var(--radius-xl);padding:22px 22px 20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06),0 8px 28px rgba(0,0,0,.07)}
+.card-head{display:flex;align-items:center;gap:11px;margin-bottom:18px}
+.card-emoji{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.card-title{font-size:14px;font-weight:800;color:var(--text)}
+.card-sub{font-size:11px;color:var(--text-3);margin-top:1px;font-weight:500}
+
+/* Fields */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.flabel{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2);margin-bottom:5px}
+.req{color:var(--red)}
+.finput{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--radius);font-size:15px;font-family:inherit;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s,box-shadow .15s;-webkit-appearance:none}
+.finput:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(0,112,192,.1)}
+.finput.error{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.08)}
+.finput::placeholder{color:var(--text-3)}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:400px){.frow{grid-template-columns:1fr}}
+
+/* Choices */
+.choices{display:flex;flex-wrap:wrap;gap:8px}
+.choice{padding:8px 15px;border-radius:99px;border:1.5px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;background:var(--surface);color:var(--text-2);font-family:inherit}
+.choice:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-dim)}
+.choice.selected{border-color:var(--brand);background:var(--brand-dim);color:var(--brand)}
+
+/* Submit */
+.submit-btn{width:100%;padding:17px;border-radius:var(--radius-lg);border:none;background:linear-gradient(135deg,#0070c0,#3b82f6);color:white;font-size:16px;font-weight:800;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(0,112,192,.32);letter-spacing:-.01em;margin-top:4px}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,112,192,.42)}
+.submit-btn:active{transform:none}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-icon{font-size:18px}
+.spinner{width:20px;height:20px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Privacy */
+.privacy{font-size:11px;color:var(--text-3);text-align:center;margin-top:14px;line-height:1.7;padding:0 8px}
+
+/* Success */
+.success-wrap{display:none;text-align:center;padding:24px 16px 48px}
+.success-ring{width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;margin:0 auto 22px;box-shadow:0 8px 28px rgba(5,150,105,.28)}
+.success-ring svg{width:44px;height:44px;stroke:white;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.success-tag{display:inline-block;background:var(--green-dim);color:var(--green);font-size:12px;font-weight:700;padding:3px 12px;border-radius:99px;margin-bottom:10px}
+.success-title{font-size:28px;font-weight:900;color:var(--text);margin-bottom:10px;letter-spacing:-.02em}
+.success-sub{font-size:14px;color:var(--text-2);line-height:1.7;max-width:300px;margin:0 auto 28px}
+.again-btn{padding:13px 28px;border-radius:var(--radius);border:1.5px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.again-btn:hover{border-color:var(--brand);color:var(--brand)}
+
+/* Errors */
+.ferr{font-size:11px;color:var(--red);margin-top:4px;display:none;font-weight:600}
+.dup-warn{background:#fffbeb;border:1px solid rgba(217,119,6,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--amber);margin-top:6px;display:none;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="load-logo">
+    <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+  </div>
+  <div class="load-text">Preparando o formulário...</div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-pattern"></div>
+  <div class="hero-badge"><div class="hero-dot"></div>Estamos aqui para ajudar</div>
+  <div class="hero-event-label" id="heroEventLabel"></div>
+  <h1 class="hero-title">Vamos <em>conversar?</em></h1>
+  <p class="hero-sub" id="heroSub">Deixe seus dados e nossa equipe entra em contato com as melhores soluções para o seu negócio.</p>
+  <div class="hero-perks">
+    <div class="perk"><div class="perk-icon">✅</div>Sem spam</div>
+    <div class="perk"><div class="perk-icon">🔒</div>Dados protegidos</div>
+    <div class="perk"><div class="perk-icon">⚡</div>Retorno rápido</div>
+  </div>
+</div>
+<div class="wave-wrap">
+  <svg viewBox="0 0 1440 36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><path d="M0,36 C480,0 960,0 1440,36 L1440,36 L0,36 Z" fill="#f0f4f8"/></svg>
+</div>
+
+<!-- Form -->
+<div class="container" id="formContainer">
+  <form id="leadForm" novalidate>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-emoji" style="background:#eff6ff">👤</div>
+        <div><div class="card-title">Sobre você</div><div class="card-sub">Como podemos te chamar?</div></div>
+      </div>
+      <div class="field">
+        <label class="flabel">Nome completo <span class="req">*</span></label>
+        <input type="text" id="pub-name" class="finput" placeholder="Ex: Maria Silva" autocomplete="name">
+        <div class="ferr" id="err-name">Por favor, informe seu nome</div>
+      </div>
+      <div class="frow">
+        <div class="field">
+          <label class="flabel">E-mail <span class="req">*</span></label>
+          <input type="email" id="pub-email" class="finput" placeholder="seu@email.com" autocomplete="email">
+          <div class="ferr" id="err-email">E-mail inválido</div>
+          <div class="dup-warn" id="dup-email-warn">⚠️ E-mail já registrado neste evento.</div>
+        </div>
+        <div class="field">
+          <label class="flabel">WhatsApp</label>
+          <input type="tel" id="pub-phone" class="finput" placeholder="(00) 00000-0000" autocomplete="tel">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="field">
+          <label class="flabel">Empresa</label>
+          <input type="text" id="pub-company" class="finput" placeholder="Onde você trabalha?" autocomplete="organization">
+        </div>
+        <div class="field">
+          <label class="flabel">Cargo</label>
+          <input type="text" id="pub-role" class="finput" placeholder="Sua função">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-emoji" style="background:#f0fdf4">🤝</div>
+        <div><div class="card-title">Como nos encontrou?</div><div class="card-sub">Opcional — mas adoramos saber!</div></div>
+      </div>
+      <div class="choices" id="origem-choices">
+        <button type="button" class="choice" data-value="estande">🏢 Estande</button>
+        <button type="button" class="choice" data-value="palestra">🎤 Palestra</button>
+        <button type="button" class="choice" data-value="networking">💬 Networking</button>
+        <button type="button" class="choice" data-value="indicacao">👋 Indicação</button>
+        <button type="button" class="choice" data-value="outro">✨ Outro</button>
+      </div>
+      <input type="hidden" id="pub-origem">
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-emoji" style="background:#faf5ff">💡</div>
+        <div><div class="card-title">O que te interessa?</div><div class="card-sub">Vamos preparar o conteúdo certo para você</div></div>
+      </div>
+      <div class="choices" id="interesse-choices">
+        <button type="button" class="choice" data-value="Conformidade">🛡️ Conformidade</button>
+        <button type="button" class="choice" data-value="Proteção">🔒 Proteção</button>
+        <button type="button" class="choice" data-value="Disponibilidade">⚡ Disponibilidade</button>
+        <button type="button" class="choice" data-value="Todos">🚀 Tudo isso!</button>
+      </div>
+      <input type="hidden" id="pub-interesse">
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-emoji" style="background:#fff7ed">💬</div>
+        <div><div class="card-title">Quer nos contar algo?</div><div class="card-sub">Desafios, projetos, dúvidas — opcional</div></div>
+      </div>
+      <textarea id="pub-obs" class="finput" rows="3" placeholder="Ex: Estou avaliando soluções de segurança para minha empresa de 500 funcionários..." style="resize:vertical"></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="btn-icon">✉️</span>
+      <span id="submitText">Quero ser contactado!</span>
+      <div class="spinner" id="submitSpinner" style="display:none"></div>
+    </button>
+
+  </form>
+  <p class="privacy">🔒 Seus dados são usados exclusivamente para contato comercial e não serão compartilhados com terceiros.</p>
+</div>
+
+<!-- Success -->
+<div id="successContainer" style="display:none">
+  <div class="hero" style="padding:32px 24px 52px">
+    <div class="hero-pattern"></div>
+  </div>
+  <div class="wave-wrap">
+    <svg viewBox="0 0 1440 36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none" style="width:100%;height:36px;display:block"><path d="M0,36 C480,0 960,0 1440,36 L1440,36 L0,36 Z" fill="#f0f4f8"/></svg>
+  </div>
+  <div class="container">
+    <div class="success-wrap" id="successScreen" style="display:block">
+      <div class="success-ring"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div class="success-tag">Mensagem recebida! 🎉</div>
+      <h2 class="success-title">Obrigado pelo contato!</h2>
+      <p class="success-sub">Nossa equipe recebeu seus dados e vai entrar em contato em breve com as melhores soluções para você.</p>
+      <button class="again-btn" onclick="resetForm()">Cadastrar outra pessoa</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGivDVIm89SY7-1-c_29Ric8V-vDEO8UY",
+  authDomain: "leads-collectorv2.firebaseapp.com",
+  projectId: "leads-collectorv2",
+  storageBucket: "leads-collectorv2.firebasestorage.app",
+  messagingSenderId: "597626217172",
+  appId: "1:597626217172:web:4a37f14d74b4fb5c5a1141"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const clientesRef = collection(db, 'clientes');
+
+const params = new URLSearchParams(window.location.search);
+const eventName = params.get('event') || '';
+
+document.getElementById('loadingOverlay').style.display = 'none';
+
+if (eventName) {
+  const el = document.getElementById('heroEventLabel');
+  el.textContent = eventName;
+  el.style.display = 'block';
+  document.getElementById('heroSub').textContent = `Você está no ${eventName}. Deixe seus dados e nossa equipe entra em contato com as melhores soluções para o seu negócio.`;
+  document.title = `Fale com a gente — ${eventName}`;
+}
+
+document.getElementById('pub-phone').addEventListener('input', e => {
+  let v = e.target.value.replace(/\D/g,'').substring(0,11);
+  v = v.replace(/^(\d{2})(\d)/,'($1) $2');
+  v = v.replace(/(\d{5})(\d)/,'$1-$2');
+  e.target.value = v;
+});
+
+['#origem-choices','#interesse-choices'].forEach(sel => {
+  document.querySelectorAll(`${sel} .choice`).forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll(`${sel} .choice`).forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const hiddenId = sel === '#origem-choices' ? 'pub-origem' : 'pub-interesse';
+      document.getElementById(hiddenId).value = btn.dataset.value;
+    });
+  });
+});
+
+let dupTO;
+document.getElementById('pub-email').addEventListener('blur', async e => {
+  const email = e.target.value.trim().toLowerCase();
+  document.getElementById('dup-email-warn').style.display = 'none';
+  if (!email || !eventName) return;
+  clearTimeout(dupTO);
+  dupTO = setTimeout(async () => {
+    try {
+      const snap = await getDocs(query(clientesRef, where('email','==',email), where('evento','==',eventName)));
+      if (!snap.empty) document.getElementById('dup-email-warn').style.display = 'block';
+    } catch(e) {}
+  }, 500);
+});
+
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+document.getElementById('leadForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name    = document.getElementById('pub-name').value.trim();
+  const email   = document.getElementById('pub-email').value.trim();
+  const phone   = document.getElementById('pub-phone').value.trim();
+  const company = document.getElementById('pub-company').value.trim();
+  const role    = document.getElementById('pub-role').value.trim();
+  const origem  = document.getElementById('pub-origem').value;
+  const interesse = document.getElementById('pub-interesse').value;
+  const obs     = document.getElementById('pub-obs').value.trim();
+
+  let valid = true;
+  if (!name) { document.getElementById('err-name').style.display='block'; document.getElementById('pub-name').classList.add('error'); valid=false; }
+  else { document.getElementById('err-name').style.display='none'; document.getElementById('pub-name').classList.remove('error'); }
+  if (!email || !isValidEmail(email)) { document.getElementById('err-email').style.display='block'; document.getElementById('pub-email').classList.add('error'); valid=false; }
+  else { document.getElementById('err-email').style.display='none'; document.getElementById('pub-email').classList.remove('error'); }
+  if (!valid) { document.querySelector('.finput.error')?.scrollIntoView({behavior:'smooth',block:'center'}); return; }
+
+  const btn = document.getElementById('submitBtn');
+  document.getElementById('submitText').style.display = 'none';
+  document.getElementById('submitSpinner').style.display = 'block';
+  btn.disabled = true;
+  document.getElementById('submit-error')?.remove();
+
+  try {
+    await addDoc(clientesRef, {
+      name, email, phone, company, cargo: role,
+      origemContato: origem || 'outro',
+      interesse: interesse || '',
+      anotacoes: obs,
+      evento: eventName,
+      pipelineStage: 'novo',
+      createdAt: new Date(),
+      createdBy: 'public_form',
+      creatorName: 'Formulário Público',
+      responsavel: '',
+      reuniaoRealizada: false, reuniaoAgendada: false, agendarReuniao: false,
+      realizadaPor: null, responsavelConta: false, contatoDecisor: false,
+      conversaDemanda: false, pedirRO: false, nutricaoMKT: false,
+      entregouBrinde: false, brindeId: null, brindeNome: null,
+      demandas: [], origem: 'qr_code',
+    });
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('successContainer').style.display = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+    if (navigator.vibrate) navigator.vibrate([50,30,100]);
+  } catch(err) {
+    console.error(err.code, err.message);
+    let msg = 'Não foi possível enviar. Verifique sua conexão e tente novamente.';
+    if (err.code === 'permission-denied') msg = 'Erro de configuração. Por favor, informe o organizador do evento.';
+    const errEl = document.createElement('div');
+    errEl.id = 'submit-error';
+    errEl.style.cssText = 'background:#fef2f2;border:1px solid rgba(220,38,38,.2);border-radius:12px;padding:14px;font-size:13px;color:#dc2626;margin-top:12px;font-weight:600;text-align:center';
+    errEl.textContent = '⚠️ ' + msg;
+    btn.after(errEl);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('submitText').style.display = 'inline';
+    document.getElementById('submitSpinner').style.display = 'none';
+  }
+});
+
+window.resetForm = () => {
+  document.getElementById('leadForm').reset();
+  document.querySelectorAll('.choice').forEach(b => b.classList.remove('selected'));
+  ['pub-origem','pub-interesse'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('successContainer').style.display = 'none';
+  document.getElementById('formContainer').style.display = 'block';
+  document.getElementById('dup-email-warn').style.display = 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+</script>
+</body>
+</html>
