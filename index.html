@@ -798,16 +798,13 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
             <div class="wizard-dot active" id="wdot-1">1</div>
             <div class="wizard-line" id="wline-1"></div>
             <div class="wizard-dot" id="wdot-2">2</div>
-            <div class="wizard-line" id="wline-2"></div>
-            <div class="wizard-dot" id="wdot-3">3</div>
           </div>
           <div class="flex justify-between text-xs mb-5 px-1" style="color:var(--c-text-3)">
-            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Contato</span>
-            <span id="wlabel-2">Qualificação</span>
-            <span id="wlabel-3">Próximo Passo</span>
+            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Contato & Qualificação</span>
+            <span id="wlabel-2">Próximo Passo</span>
           </div>
 
-          <!-- Step 1: Contact data -->
+          <!-- Step 1: Contato + Qualificação (merged) -->
           <div class="wizard-step active space-y-4" id="wizard-step-1">
             <div class="card">
               <span class="section-label">Evento</span>
@@ -844,11 +841,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <input type="hidden" id="origemContato">
               </div>
             </div>
-            <div class="flex justify-end"><button type="button" id="wizard-next-1" class="btn btn-primary">Próximo <i class="fas fa-arrow-right"></i></button></div>
-          </div>
-
-          <!-- Step 2: Qualification -->
-          <div class="wizard-step space-y-4" id="wizard-step-2">
+            <!-- Qualificação (merged into step 1) -->
             <div class="card space-y-5">
               <span class="section-label">Qualificação</span>
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">É responsável pela conta?</label>
@@ -879,14 +872,11 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <div class="choice-group" data-field="pedirRO"><button type="button" class="choice-btn" data-value="sim">Sim</button><button type="button" class="choice-btn" data-value="nao">Não</button></div>
                 <input type="hidden" id="pedirROVal"></div>
             </div>
-            <div class="flex justify-between">
-              <button type="button" id="wizard-back-2" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
-              <button type="button" id="wizard-next-2" class="btn btn-primary">Próximo <i class="fas fa-arrow-right"></i></button>
-            </div>
+            <div class="flex justify-end"><button type="button" id="wizard-next-1" class="btn btn-primary">Próximo <i class="fas fa-arrow-right"></i></button></div>
           </div>
 
-          <!-- Step 3: Next step + brinde + notes -->
-          <div class="wizard-step space-y-4" id="wizard-step-3">
+          <!-- Step 2: Next step + brinde + notes -->
+          <div class="wizard-step space-y-4" id="wizard-step-2">
             <!-- Pipeline -->
             <div class="card">
               <span class="section-label">Pipeline</span>
@@ -929,7 +919,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
             <!-- Notes -->
             <div class="card"><span class="section-label">Observações</span><textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea></div>
             <div class="flex justify-between">
-              <button type="button" id="wizard-back-3" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
+              <button type="button" id="wizard-back-2" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
               <button type="submit" id="saveButton" class="btn btn-primary py-3 px-8 text-sm">
                 <i class="fas fa-save button-icon"></i><span class="button-text">Salvar Lead</span><span class="spinner hidden"></span>
               </button>
@@ -1705,8 +1695,20 @@ document.getElementById('authForm').addEventListener('submit',async e=>{
       if(password.length<6)throw{message:'Senha deve ter 6+ caracteres.'};
       if(password!==cp)throw{message:'Senhas não coincidem.'};
       const cred=await createUserWithEmailAndPassword(auth,email,password);
-      await setDoc(doc(db,'users',cred.user.uid),{email,role:'comum',status:'pending',nome:fn,sobrenome:ln});
+      const newUid = cred.user.uid;
+      const newEmail = cred.user.email;
+      // Desconectar ANTES de gravar o documento para evitar que onAuthStateChanged
+      // dispare com o usuário logado antes do documento existir no Firestore
       await signOut(auth);
+      // Agora salva o documento com segurança (auth já está nulo)
+      await setDoc(doc(db,'users',newUid),{
+        email: newEmail,
+        role: 'comum',
+        status: 'pending',
+        nome: fn,
+        sobrenome: ln,
+        createdAt: new Date()
+      });
       document.getElementById('login-container').classList.add('hidden');
       document.getElementById('registration-success-container').classList.remove('hidden');
     }
@@ -1781,7 +1783,9 @@ onAuthStateChanged(auth, async user => {
       loadEmailJSConfig();
       loadCustomFields();
       if (navigator.onLine) syncOfflineQueue();
-      switchTab('dashboard');
+      // Adiar ligeiramente para que setupListeners e seus callbacks síncronos não sobrescrevam a navegação
+      const _initialTab = currentUserRole === 'vendedor' ? 'cadastro' : 'dashboard';
+      setTimeout(() => switchTab(_initialTab), 50);
     } else if (currentUserData.status === 'pending') {
       signOut(auth);
       showAuthError('Conta pendente de aprovação pelo administrador.');
@@ -3570,7 +3574,7 @@ function renderRegistrosStats(clients) {
 // ── Wizard navigation ─────────────────────────────────────
 function goToWizardStep(step) {
   currentWizardStep = step;
-  [1, 2, 3].forEach(s => {
+  [1, 2].forEach(s => {
     const el = document.getElementById(`wizard-step-${s}`);
     if (el) el.classList.toggle('active', s === step);
     const dot = document.getElementById(`wdot-${s}`);
@@ -3586,9 +3590,7 @@ function goToWizardStep(step) {
     }
   });
   const l1 = document.getElementById('wline-1');
-  const l2 = document.getElementById('wline-2');
   if (l1) l1.classList.toggle('done', step > 1);
-  if (l2) l2.classList.toggle('done', step > 2);
   // scroll to top of form
   document.getElementById('wizard-step-' + step)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -3600,9 +3602,7 @@ document.getElementById('wizard-next-1')?.addEventListener('click', () => {
   if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
   goToWizardStep(2);
 });
-document.getElementById('wizard-next-2')?.addEventListener('click', () => goToWizardStep(3));
 document.getElementById('wizard-back-2')?.addEventListener('click', () => goToWizardStep(1));
-document.getElementById('wizard-back-3')?.addEventListener('click', () => goToWizardStep(2));
 
 // Pipeline steps (new lead form)
 document.querySelectorAll('#pipeline-new .pipeline-step').forEach((step, i) => {
