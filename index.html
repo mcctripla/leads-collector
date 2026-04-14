@@ -800,35 +800,67 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
             <div class="wizard-dot" id="wdot-2">2</div>
           </div>
           <div class="flex justify-between text-xs mb-5 px-1" style="color:var(--c-text-3)">
-            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Contato & Qualificação</span>
-            <span id="wlabel-2">Próximo Passo</span>
+            <span class="font-semibold" id="wlabel-1" style="color:var(--c-brand)">Dados Principais</span>
+            <span id="wlabel-2">Informações Adicionais</span>
           </div>
 
-          <!-- Step 1: Contato + Qualificação (merged) -->
+          <!-- Step 1: Principal -->
           <div class="wizard-step active space-y-4" id="wizard-step-1">
-            <div class="card">
-              <span class="section-label">Evento</span>
-              <select id="evento" class="form-input" required><option value="">Selecione o evento</option></select>
-            </div>
             <div class="card space-y-4">
               <span class="section-label">Dados do Contato</span>
               <div>
-                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Nome completo <span style="color:var(--c-red)">*</span></label>
-                <input type="text" id="name" class="form-input" placeholder="Ex: Maria Silva" required autocomplete="off">
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Nome completo</label>
+                <input type="text" id="name" class="form-input" placeholder="Ex: Maria Silva" autocomplete="off">
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">E-mail <span style="color:var(--c-red)">*</span></label>
-                  <div class="field-wrap"><input type="email" id="lead_email" class="form-input pr-9" placeholder="email@empresa.com" required autocomplete="off"><span id="email-validation-icon" class="field-icon hidden"></span></div>
-                  <div id="duplicate-email-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-email-msg"></span></div>
-                </div>
                 <div>
                   <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Telefone</label>
                   <div class="field-wrap"><input type="tel" id="phone" class="form-input pr-9" placeholder="(00) 00000-0000" autocomplete="off"><span id="phone-validation-icon" class="field-icon hidden"></span></div>
                   <div id="duplicate-phone-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-phone-msg"></span></div>
                 </div>
+                <div>
+                  <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Empresa <span style="color:var(--c-red)">*</span></label>
+                  <input type="text" id="company" class="form-input" placeholder="Nome da empresa" required autocomplete="off">
+                </div>
               </div>
-              <div><label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Empresa</label><input type="text" id="company" class="form-input" placeholder="Nome da empresa" autocomplete="off"></div>
+              <div>
+                <label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Pedir RO para Sales Ops?</label>
+                <div class="choice-group" data-field="pedirRO">
+                  <button type="button" class="choice-btn" data-value="sim">Sim</button>
+                  <button type="button" class="choice-btn" data-value="nao">Não</button>
+                </div>
+                <input type="hidden" id="pedirROVal">
+              </div>
+              <div>
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Observações</label>
+                <textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea>
+              </div>
+            </div>
+            
+            <div class="flex justify-between gap-3">
+              <button type="button" id="wizard-next-1" class="btn btn-primary flex-1">
+                Mais informações <i class="fas fa-arrow-right"></i>
+              </button>
+              <button type="button" id="save-quick-btn" class="btn btn-success flex-1">
+                <i class="fas fa-save"></i> Salvar
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 2: Detalhes -->
+          <div class="wizard-step space-y-4" id="wizard-step-2">
+            <div class="card">
+              <span class="section-label">Evento</span>
+              <select id="evento" class="form-input"><option value="">Selecione o evento</option></select>
+            </div>
+
+            <div class="card space-y-4">
+              <span class="section-label">Dados Adicionais</span>
+              <div>
+                <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">E-mail</label>
+                <div class="field-wrap"><input type="email" id="lead_email" class="form-input pr-9" placeholder="email@empresa.com" autocomplete="off"><span id="email-validation-icon" class="field-icon hidden"></span></div>
+                <div id="duplicate-email-warning" class="dup-warning mt-2"><i class="fas fa-exclamation-triangle mr-1"></i><span id="duplicate-email-msg"></span></div>
+              </div>
               <div>
                 <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Origem do contato</label>
                 <div class="choice-group" id="origem-group">
@@ -841,7 +873,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <input type="hidden" id="origemContato">
               </div>
             </div>
-            <!-- Qualificação (merged into step 1) -->
+
             <div class="card space-y-5">
               <span class="section-label">Qualificação</span>
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">É responsável pela conta?</label>
@@ -853,7 +885,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Houve conversa sobre demanda?</label>
                 <div class="choice-group" data-field="conversaDemanda"><button type="button" class="choice-btn" data-value="sim">Sim</button><button type="button" class="choice-btn" data-value="nao">Não</button></div>
                 <input type="hidden" id="conversaDemandaVal"></div>
-              <!-- Portfolio demandas -->
+
               <div id="demandasContainer" class="hidden space-y-3">
                 <label class="text-sm font-semibold block" style="color:var(--c-text-2)">Quais soluções foram discutidas?</label>
                 <div class="flex flex-col sm:flex-row gap-2">
@@ -868,16 +900,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <div id="demanda-solutions-grid" class="grid grid-cols-1 gap-1.5 max-h-72 overflow-y-auto pr-1"></div>
                 <p id="demanda-empty" class="hidden text-xs text-center py-4" style="color:var(--c-text-3)">Nenhuma solução encontrada.</p>
               </div>
-              <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Pedir RO para Sales Ops?</label>
-                <div class="choice-group" data-field="pedirRO"><button type="button" class="choice-btn" data-value="sim">Sim</button><button type="button" class="choice-btn" data-value="nao">Não</button></div>
-                <input type="hidden" id="pedirROVal"></div>
             </div>
-            <div class="flex justify-end"><button type="button" id="wizard-next-1" class="btn btn-primary">Próximo <i class="fas fa-arrow-right"></i></button></div>
-          </div>
 
-          <!-- Step 2: Next step + brinde + notes -->
-          <div class="wizard-step space-y-4" id="wizard-step-2">
-            <!-- Pipeline -->
             <div class="card">
               <span class="section-label">Pipeline</span>
               <div class="pipeline-track" id="pipeline-new">
@@ -888,7 +912,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               </div>
               <input type="hidden" id="pipelineStageVal" value="novo">
             </div>
-            <!-- Next step -->
+
             <div class="card space-y-4">
               <span class="section-label">Próximo Passo</span>
               <div class="choice-group flex-col sm:flex-row" data-field="proximoPasso">
@@ -903,7 +927,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
               </div>
               <div id="sdrSelectorContainer" class="hidden"><label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Atribuir ao SDR</label><select id="sdrSelector" class="form-input"></select></div>
             </div>
-            <!-- Brinde -->
+
             <div class="card space-y-4">
               <span class="section-label">🎁 Brinde</span>
               <div><label class="text-sm font-semibold mb-2 block" style="color:var(--c-text-2)">Entregou brinde?</label>
@@ -916,11 +940,12 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
                 <div id="brinde-stock-info" class="hidden text-xs rounded-lg px-3 py-2"></div>
               </div>
             </div>
-            <!-- Notes -->
-            <div class="card"><span class="section-label">Observações</span><textarea id="anotacoes" class="form-input" rows="3" placeholder="Anotações relevantes..."></textarea></div>
-            <div class="flex justify-between">
-              <button type="button" id="wizard-back-2" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
-              <button type="submit" id="saveButton" class="btn btn-primary py-3 px-8 text-sm">
+
+            <div class="flex justify-between gap-3">
+              <button type="button" id="wizard-back-2" class="btn btn-secondary flex-1">
+                <i class="fas fa-arrow-left"></i> Voltar
+              </button>
+              <button type="submit" id="saveButton" class="btn btn-primary py-3 px-8 text-sm flex-1">
                 <i class="fas fa-save button-icon"></i><span class="button-text">Salvar Lead</span><span class="spinner hidden"></span>
               </button>
             </div>
@@ -3466,31 +3491,80 @@ document.getElementById('qa-save-btn')?.addEventListener('click', async () => {
 // ── Client Form Submit ────────────────────────────────────
 document.getElementById('clientForm')?.addEventListener('submit', async e => {
   e.preventDefault();
-  const nameVal = document.getElementById('name')?.value.trim();
-  const leadEmail = document.getElementById('lead_email')?.value.trim();
-  if (!nameVal) { showToast('Nome é obrigatório.', 'error'); return; }
-  if (leadEmail && !isValidEmail(leadEmail)) { showToast('E-mail inválido.', 'error'); return; }
+  const isQuickSave = e.target.dataset.quickSave === 'true';
+  delete e.target.dataset.quickSave;
 
-  const btn = document.getElementById('saveButton');
+  const companyVal = document.getElementById('company')?.value.trim();
+  if (!companyVal) {
+    showToast('O campo Empresa é obrigatório.', 'error');
+    goToWizardStep(1);
+    return;
+  }
+
+  // Optional email validation
+  let emailVal = document.getElementById('lead_email')?.value.trim();
+  if (emailVal && !isValidEmail(emailVal)) {
+    showToast('O e-mail informado é inválido.', 'error');
+    if (currentWizardStep === 1) goToWizardStep(2);
+    return;
+  }
+
+  const nameVal = document.getElementById('name')?.value.trim();
+  const phoneVal = document.getElementById('phone')?.value.trim();
+  const pedirRO = document.getElementById('pedirROVal')?.value;
+  const anotacoes = document.getElementById('anotacoes')?.value.trim();
+
+  // Step 2 values
+  let eventoVal = document.getElementById('evento')?.value;
+  let origemVal = document.getElementById('origemContato')?.value;
+  let respConta = document.getElementById('responsavelContaVal')?.value;
+  let decisor = document.getElementById('contatoDecisorVal')?.value;
+  let demanda = document.getElementById('conversaDemandaVal')?.value;
+  let stage = document.getElementById('pipelineStageVal')?.value || 'novo';
+  let proximoPasso = document.getElementById('proximoPassoVal')?.value;
+  let entregouBrinde = document.getElementById('entregouBrindeVal')?.value;
+  // Defaults for optional fields
+  if (!eventoVal) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const activeEvent = allEvents.find(ev => {
+      const s = ev.startDate ? new Date(ev.startDate + 'T00:00:00') : null;
+      const e = ev.endDate ? new Date(ev.endDate + 'T00:00:00') : null;
+      return s && e && s <= today && today <= e;
+    });
+    eventoVal = activeEvent ? activeEvent.name : (allEvents.length ? allEvents[0].name : '');
+  }
+  if (!origemVal) origemVal = 'estande';
+  if (!respConta) respConta = 'nao';
+  if (!decisor) decisor = 'nao';
+  if (!demanda) demanda = 'nao';
+  if (!proximoPasso) proximoPasso = 'nutricaoMKT';
+  if (!entregouBrinde) entregouBrinde = 'nao';
+
+  const btn = isQuickSave ? document.getElementById('save-quick-btn') : document.getElementById('saveButton');
+  if (!btn) return;
+
   btn.disabled = true;
-  btn.querySelector('.button-text')?.classList.add('hidden');
-  btn.querySelector('.spinner')?.classList.remove('hidden');
+  if (!isQuickSave) {
+    btn.querySelector('.button-text')?.classList.add('hidden');
+    btn.querySelector('.spinner')?.classList.remove('hidden');
+  } else {
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+  }
 
   const creatorName = `${currentUserData.nome} ${currentUserData.sobrenome}`;
-  const proximoPasso = document.getElementById('proximoPassoVal')?.value || '';
   const brindeData = getBrindeData();
 
   const lead = {
-    evento: document.getElementById('evento')?.value || '',
+    evento: eventoVal,
     name: nameVal,
-    company: document.getElementById('company')?.value.trim() || '',
-    email: leadEmail || '',
-    phone: document.getElementById('phone')?.value.trim() || '',
-    origemContato: document.getElementById('origemContato')?.value || '',
-    responsavelConta: document.getElementById('responsavelContaVal')?.value === 'sim',
-    contatoDecisor: document.getElementById('contatoDecisorVal')?.value === 'sim',
-    conversaDemanda: document.getElementById('conversaDemandaVal')?.value === 'sim',
-    pedirRO: document.getElementById('pedirROVal')?.value === 'sim',
+    company: companyVal,
+    email: emailVal || '',
+    phone: phoneVal,
+    origemContato: origemVal,
+    responsavelConta: respConta === 'sim',
+    contatoDecisor: decisor === 'sim',
+    conversaDemanda: demanda === 'sim',
+    pedirRO: pedirRO === 'sim',
     nutricaoMKT: proximoPasso === 'nutricaoMKT',
     demandas: JSON.parse(document.getElementById('clientForm')?.dataset.demandas || '[]'),
     reuniaoAgendada: proximoPasso === 'euAgendo',
@@ -3498,8 +3572,8 @@ document.getElementById('clientForm')?.addEventListener('submit', async e => {
     reuniaoData: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoDataInput')?.value : null,
     reuniaoHora: proximoPasso === 'sdrAgenda' ? document.getElementById('reuniaoHoraInput')?.value : null,
     reuniaoAgendadaPor: proximoPasso === 'sdrAgenda' ? document.getElementById('sdrSelector')?.value : null,
-    pipelineStage: document.getElementById('pipelineStageVal')?.value || 'novo',
-    anotacoes: document.getElementById('anotacoes')?.value.trim() || '',
+    pipelineStage: stage,
+    anotacoes: anotacoes,
     createdAt: new Date(), createdBy: currentUserId, creatorName,
     responsavel: creatorName,
     reuniaoRealizada: false, realizadaPor: null,
@@ -3533,8 +3607,12 @@ document.getElementById('clientForm')?.addEventListener('submit', async e => {
     showToast('Erro ao salvar lead.', 'error');
   } finally {
     btn.disabled = false;
-    btn.querySelector('.button-text')?.classList.remove('hidden');
-    btn.querySelector('.spinner')?.classList.add('hidden');
+    if (!isQuickSave) {
+      btn.querySelector('.button-text')?.classList.remove('hidden');
+      btn.querySelector('.spinner')?.classList.add('hidden');
+    } else {
+      btn.innerHTML = '<i class="fas fa-save"></i> Salvar';
+    }
   }
 });
 
@@ -3596,12 +3674,29 @@ function goToWizardStep(step) {
 }
 
 document.getElementById('wizard-next-1')?.addEventListener('click', () => {
-  const name = document.getElementById('name')?.value.trim();
+  const company = document.getElementById('company')?.value.trim();
+  if (!company) { showToast('Empresa é obrigatória.', 'error'); return; }
+  
   const email = document.getElementById('lead_email')?.value.trim();
-  if (!name) { showToast('Nome é obrigatório.', 'error'); return; }
   if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
+  
   goToWizardStep(2);
 });
+
+document.getElementById('save-quick-btn')?.addEventListener('click', () => {
+  const form = document.getElementById('clientForm');
+  if (!form) return;
+  
+  const company = document.getElementById('company')?.value.trim();
+  if (!company) { showToast('Empresa é obrigatória.', 'error'); return; }
+
+  const email = document.getElementById('lead_email')?.value.trim();
+  if (email && !isValidEmail(email)) { showToast('E-mail inválido.', 'error'); return; }
+
+  form.dataset.quickSave = 'true';
+  form.requestSubmit();
+});
+
 document.getElementById('wizard-back-2')?.addEventListener('click', () => goToWizardStep(1));
 
 // Pipeline steps (new lead form)
