@@ -807,6 +807,11 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
           <!-- Step 1: Principal -->
           <div class="wizard-step active space-y-4" id="wizard-step-1">
             <div class="card space-y-4">
+              <span class="section-label">Evento</span>
+              <div class="mb-4">
+                <select id="evento" class="form-input text-sm"><option value="">Selecione o evento</option></select>
+              </div>
+              
               <span class="section-label">Dados do Contato</span>
               <div>
                 <label class="text-sm font-semibold mb-1.5 block" style="color:var(--c-text-2)">Nome completo</label>
@@ -849,10 +854,6 @@ kbd{display:inline-flex;align-items:center;justify-content:center;padding:1px 6p
 
           <!-- Step 2: Detalhes -->
           <div class="wizard-step space-y-4" id="wizard-step-2">
-            <div class="card">
-              <span class="section-label">Evento</span>
-              <select id="evento" class="form-input"><option value="">Selecione o evento</option></select>
-            </div>
 
             <div class="card space-y-4">
               <span class="section-label">Dados Adicionais</span>
