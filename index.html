@@ -2347,21 +2347,22 @@ window.closeFilterSidebar=()=>{document.getElementById('filter-sidebar').classLi
 
 // ── Export ────────────────────────────────────────────────
 document.getElementById('exportXlsxButton').addEventListener('click',()=>{
-  const data=allClients.map(c=>({'ID':c.id,'Data':c.createdAt?.toDate?.()?.toLocaleDateString('pt-BR')||'','Criado por':c.creatorName||'','Responsável':c.responsavel||'','Evento':c.evento||'','Nome':c.name,'E-mail':c.email||'','Telefone':c.phone||'','Empresa':c.company||'','Origem':ORIGEM_LABELS[c.origemContato]||'','Pipeline':PIPELINE_LABELS[c.pipelineStage||'novo'],'R. Agendada':c.reuniaoAgendada?'Sim':'Não','R. Realizada':c.reuniaoRealizada?'Sim':'Não','Agendado por':c.reuniaoAgendadaPor||'','Realizado por':c.realizadaPor||'','Brinde':c.entregouBrinde?'Sim':'Não','Nome Brinde':c.brindeNome||'','Gerar RO':c.gerarRO?'Sim':'Não','Observações':c.anotacoes||''}));
+  const data=allClients.map(c=>({'ID':c.id,'Data':c.createdAt?.toDate?.()?.toLocaleDateString('pt-BR')||'','Criado por':c.creatorName||'','Responsável':c.responsavel||'','Evento':c.evento||'','Nome':c.name,'E-mail':c.email||'','Telefone':c.phone||'','Empresa':c.company||'','Origem':ORIGEM_LABELS[c.origemContato]||'','Pipeline':PIPELINE_LABELS[c.pipelineStage||'novo'],'R. Agendada':c.reuniaoAgendada?'Sim':'Não','R. Realizada':c.reuniaoRealizada?'Sim':'Não','Agendado por':c.reuniaoAgendadaPor||'','Realizado por':c.realizadaPor||'','Brinde':c.entregouBrinde?'Sim':'Não','Nome Brinde':c.brindeNome||'','Pedir RO':c.pedirRO?'Sim':'Não','Gerar RO':c.gerarRO?'Sim':'Não','Observações':c.anotacoes||''}));
   const ws=XLSX.utils.json_to_sheet(data),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Leads');XLSX.writeFile(wb,`leads_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);showToast('Exportado!');
 });
+
 document.getElementById('exportPdfButton').addEventListener('click',()=>{
   const{jsPDF}=window.jspdf,pdf=new jsPDF();const evFilter=document.getElementById('analytics-evento-filter').value;const data=evFilter==='todos'?allClients:allClients.filter(c=>c.evento===evFilter);const title=evFilter==='todos'?'Relatório Geral de Leads':`Relatório: ${evFilter}`;const date=new Date().toLocaleDateString('pt-BR');let y=20;
   pdf.setFontSize(18);pdf.setTextColor(0,112,192);pdf.text(title,20,y);y+=8;pdf.setFontSize(10);pdf.setTextColor(100);pdf.text(`Gerado em: ${date}`,20,y);y+=8;pdf.setDrawColor(0,112,192);pdf.line(20,y,190,y);y+=8;
   const total=data.length,realizadas=data.filter(c=>c.pipelineStage==='reuniao_realizada').length;
   pdf.setFontSize(12);pdf.setTextColor(30);pdf.text(`Total de Leads: ${total}`,20,y);y+=6;pdf.text(`Reuniões Realizadas: ${realizadas}`,20,y);y+=6;pdf.text(`Taxa de Conversão: ${total?Math.round(realizadas/total*100):0}%`,20,y);y+=8;
   PIPELINE_STAGES.forEach(s=>{const count=data.filter(c=>(c.pipelineStage||'novo')===s).length;pdf.text(`  ${PIPELINE_LABELS[s]}: ${count}`,20,y);y+=5;});y+=5;pdf.setDrawColor(200);pdf.line(20,y,190,y);y+=8;
-  pdf.setFontSize(9);const headers=['Nome','Empresa','Evento','Responsável','Pipeline'];const colWidths=[45,40,35,40,25];let x=20;pdf.setTextColor(0,112,192);headers.forEach((h,i)=>{pdf.text(h,x,y);x+=colWidths[i];});y+=4;pdf.setDrawColor(0,112,192);pdf.line(20,y,190,y);y+=4;pdf.setTextColor(50);
-  data.slice(0,40).forEach(c=>{if(y>270){pdf.addPage();y=20;}x=20;[c.name,c.company||'',c.evento||'',c.responsavel||'',PIPELINE_LABELS[c.pipelineStage||'novo']].forEach((v,i)=>{pdf.text(String(v).substring(0,Math.floor(colWidths[i]/2.5)),x,y);x+=colWidths[i];});y+=5;});
+  
+  pdf.setFontSize(9);const headers=['Nome','Empresa','Evento','Responsável','Pipeline','RO'];const colWidths=[40,35,30,35,25,15];let x=20;pdf.setTextColor(0,112,192);headers.forEach((h,i)=>{pdf.text(h,x,y);x+=colWidths[i];});y+=4;pdf.setDrawColor(0,112,192);pdf.line(20,y,190,y);y+=4;pdf.setTextColor(50);
+  data.slice(0,40).forEach(c=>{if(y>270){pdf.addPage();y=20;}x=20;[c.name,c.company||'',c.evento||'',c.responsavel||'',PIPELINE_LABELS[c.pipelineStage||'novo'],(c.pedirRO||c.gerarRO?'Sim':'Não')].forEach((v,i)=>{pdf.text(String(v).substring(0,Math.floor(colWidths[i]/2.5)),x,y);x+=colWidths[i];});y+=5;});
   if(data.length>40){pdf.setTextColor(150);pdf.text(`... e mais ${data.length-40} registros.`,20,y);}
   pdf.save(`relatorio-${date.replace(/\//g,'-')}.pdf`);showToast('PDF gerado!');
 });
-
 // ── Import ────────────────────────────────────────────────
 let importValidRows=[],importDuplicateRows=[],importErrorRows=[];
 const COL_MAP={nome:['nome','name','nome completo'],email:['email','e-mail','mail'],phone:['telefone','phone','cel','celular','whatsapp'],company:['empresa','company','organizacao'],evento:['evento','event'],origem:['origem','source'],anotacoes:['observacoes','observações','notas','notes'],responsavel:['responsavel','responsável','owner']};
@@ -2710,7 +2711,10 @@ function renderTable(clients) {
             <p class="font-semibold text-sm truncate max-w-40">${c.name}</p>
             <p class="text-xs truncate max-w-40" style="color:var(--c-text-3)">${c.company || ''}</p>
           </div>
-          ${c.entregouBrinde ? `<span title="Brinde: ${c.brindeNome || 'Sim'}" style="font-size:13px">🎁</span>` : ''}
+          <div class="flex items-center gap-1">
+            ${c.entregouBrinde ? `<span title="Brinde: ${c.brindeNome || 'Sim'}" style="font-size:13px">🎁</span>` : ''}
+            ${c.pedirRO || c.gerarRO ? `<span title="Atenção: Necessita RO" style="font-size:13px; color:var(--c-amber)"><i class="fas fa-exclamation-triangle"></i></span>` : ''}
+          </div>
         </div>
       </td>
       <td class="hidden lg:table-cell text-xs truncate max-w-32" style="color:var(--c-text-2)">${c.company || '—'}</td>
